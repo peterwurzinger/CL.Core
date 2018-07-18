@@ -1,6 +1,6 @@
-﻿namespace CL.Core.Native
+﻿namespace CL.Core.API
 {
-    public enum PlatformInfoParameters : uint
+    public enum PlatformInfoParameter : uint
     {
         Profile = 0b1001_0000_0000,
         Version = 0b1001_0000_0001,

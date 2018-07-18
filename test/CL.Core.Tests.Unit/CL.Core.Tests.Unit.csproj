@@ -13,4 +13,9 @@
     <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\CL.Core\CL.Core.csproj" />
+    <ProjectReference Include="..\CL.Core.Fakes\CL.Core.Fakes.csproj" />
+  </ItemGroup>
+
 </Project>

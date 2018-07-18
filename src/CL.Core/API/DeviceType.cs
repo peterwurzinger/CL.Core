@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CL.Core.Native
+namespace CL.Core.API
 {
     [Flags]
     public enum DeviceType : uint

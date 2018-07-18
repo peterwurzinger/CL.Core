@@ -1,12 +1,14 @@
-﻿using CL.Core.Native;
-using System;
+﻿using System;
 using System.Linq;
 using System.Text;
+using CL.Core.API;
 
 namespace CL.Core.Model
 {
     public class Device : IDisposable
     {
+        private readonly IDeviceInfoInterop _deviceInfoInterop;
+
         #region Properties
 
         /// <summary>
@@ -81,8 +83,9 @@ namespace CL.Core.Model
 
         #endregion
 
-        internal Device(IntPtr deviceId)
+        internal Device(IntPtr deviceId, IDeviceInfoInterop deviceInfoInterop)
         {
+            _deviceInfoInterop = deviceInfoInterop ?? throw new ArgumentNullException(nameof(deviceInfoInterop));
             Id = deviceId.ToInt64();
             Name = GetDeviceInfo(DeviceInfoParameter.Name);
             Type = (DeviceType)BitConverter.ToUInt32(GetDeviceInfoNoString(DeviceInfoParameter.Type), 0);
@@ -113,15 +116,19 @@ namespace CL.Core.Model
 
         private byte[] GetDeviceInfoNoString(DeviceInfoParameter parameter)
         {
-            var error = DeviceCalls.clGetDeviceInfo(new IntPtr(Id), parameter, UIntPtr.Zero, null, out var infoSize);
+            var error = _deviceInfoInterop.clGetDeviceInfo(new IntPtr(Id), parameter, UIntPtr.Zero, null, out var infoSize);
+            error.ThrowOnError();
+
             var info = new byte[infoSize.ToUInt32()];
-            error = DeviceCalls.clGetDeviceInfo(new IntPtr(Id), parameter, infoSize, info, out _);
+            error = _deviceInfoInterop.clGetDeviceInfo(new IntPtr(Id), parameter, infoSize, info, out _);
+            error.ThrowOnError();
+
             return info;
         }
 
         private void ReleaseUnmanagedResources()
         {
-            DeviceCalls.clReleaseDevice(new IntPtr(Id));
+            _deviceInfoInterop.clReleaseDevice(new IntPtr(Id)).ThrowOnError();
             // TODO release unmanaged resources here
         }
 

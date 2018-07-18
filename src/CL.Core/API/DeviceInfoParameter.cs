@@ -1,4 +1,4 @@
-﻿namespace CL.Core.Native
+﻿namespace CL.Core.API
 {
     public enum DeviceInfoParameter
     {
