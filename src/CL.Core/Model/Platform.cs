@@ -6,7 +6,7 @@ using CL.Core.API;
 
 namespace CL.Core.Model
 {
-    public class Platform
+    public class Platform : IEquatable<Platform>
     {
         private readonly IPlatformInfoInterop _platformInterop;
 
@@ -52,6 +52,25 @@ namespace CL.Core.Model
 
             //TODO: Encoding configurable?
             return Encoding.Default.GetString(info);
+        }
+
+        public bool Equals(Platform other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            return obj.GetType() == GetType() && Equals((Platform) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
         }
     }
 }

@@ -5,7 +5,7 @@ using CL.Core.API;
 
 namespace CL.Core.Model
 {
-    public class Device : IDisposable
+    public class Device : IDisposable, IEquatable<Device>
     {
         private readonly IDeviceInfoInterop _deviceInfoInterop;
 
@@ -141,6 +141,25 @@ namespace CL.Core.Model
         ~Device()
         {
             ReleaseUnmanagedResources();
+        }
+
+        public bool Equals(Device other)
+        {
+            if (other is null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            return obj.GetType() == GetType() && Equals((Device) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
         }
     }
 }
