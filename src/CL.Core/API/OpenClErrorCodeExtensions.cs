@@ -16,7 +16,12 @@ namespace CL.Core.API
     //TODO: ClCoreException should only be the base exception. Introduce a bunch of exceptions to cover groups of errors
     public class ClCoreException : Exception
     {
-        public ClCoreException(OpenClErrorCode error) : base(error.ToString())
+        public ClCoreException(string errorMessage) : base(errorMessage)
+        {
+
+        }
+
+        public ClCoreException(OpenClErrorCode error) : this(error.ToString())
         {
 
         }

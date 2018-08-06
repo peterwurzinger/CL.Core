@@ -24,10 +24,11 @@ namespace CL.Core.Model
 
             //TODO: Check if Id exists
             Id = platformId.ToInt64();
-            Name = GetPlatformInfo(PlatformInfoParameter.Name);
-            Vendor = GetPlatformInfo(PlatformInfoParameter.Vendor);
-            Profile = GetPlatformInfo(PlatformInfoParameter.Profile);
-            Extensions = GetPlatformInfo(PlatformInfoParameter.Extensions).Split(' ');
+
+            Name = Encoding.Default.GetString(InfoHelper.GetInfo(_platformInterop.clGetPlatformInfo, platformId, PlatformInfoParameter.Name));
+            Vendor = Encoding.Default.GetString(InfoHelper.GetInfo(_platformInterop.clGetPlatformInfo, platformId, PlatformInfoParameter.Vendor));
+            Profile = Encoding.Default.GetString(InfoHelper.GetInfo(_platformInterop.clGetPlatformInfo, platformId, PlatformInfoParameter.Profile));
+            Extensions = Encoding.Default.GetString(InfoHelper.GetInfo(_platformInterop.clGetPlatformInfo, platformId, PlatformInfoParameter.Extensions)).Split(' ');
 
 
             var errorCode = deviceInfoInterop.clGetDeviceIDs(platformId, DeviceType.All, 0, null, out var numDevices);
@@ -37,21 +38,7 @@ namespace CL.Core.Model
             errorCode = deviceInfoInterop.clGetDeviceIDs(platformId, DeviceType.All, numDevices, deviceIds, out _);
             errorCode.ThrowOnError();
 
-            Devices = deviceIds.Select(deviceId => new Device(deviceId, deviceInfoInterop)).ToList().AsReadOnly();
-        }
-
-
-        private string GetPlatformInfo(PlatformInfoParameter parameter)
-        {
-            var error = _platformInterop.clGetPlatformInfo(new IntPtr(Id), (uint)parameter, UIntPtr.Zero, null, out var infoSize);
-            error.ThrowOnError();
-
-            var info = new byte[infoSize.ToUInt32()];
-            error = _platformInterop.clGetPlatformInfo(new IntPtr(Id), (uint)parameter, infoSize, info, out _);
-            error.ThrowOnError();
-
-            //TODO: Encoding configurable?
-            return Encoding.Default.GetString(info);
+            Devices = deviceIds.Select(deviceId => new Device(this, deviceId, deviceInfoInterop)).ToList().AsReadOnly();
         }
 
         public bool Equals(Platform other)

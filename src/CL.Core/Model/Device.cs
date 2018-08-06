@@ -1,7 +1,7 @@
-﻿using System;
+﻿using CL.Core.API;
+using System;
 using System.Linq;
 using System.Text;
-using CL.Core.API;
 
 namespace CL.Core.Model
 {
@@ -15,6 +15,8 @@ namespace CL.Core.Model
         /// ?
         /// </summary>
         public long Id { get; }
+
+        public Platform Platform { get; }
 
         /// <summary>
         /// Device name string.
@@ -36,6 +38,8 @@ namespace CL.Core.Model
         /// </summary>
         public uint VendorId { get; }
 
+
+        //TODO: This property could change. Make Lazy<bool>?
         /// <summary>
         /// Is true if the device is available and false if the device is not available.
         /// </summary>
@@ -83,47 +87,33 @@ namespace CL.Core.Model
 
         #endregion
 
-        internal Device(IntPtr deviceId, IDeviceInfoInterop deviceInfoInterop)
+        internal Device(Platform platform, IntPtr deviceId, IDeviceInfoInterop deviceInfoInterop)
         {
+            Platform = platform ?? throw new ArgumentNullException(nameof(platform));
             _deviceInfoInterop = deviceInfoInterop ?? throw new ArgumentNullException(nameof(deviceInfoInterop));
+
             Id = deviceId.ToInt64();
-            Name = GetDeviceInfo(DeviceInfoParameter.Name);
-            Type = (DeviceType)BitConverter.ToUInt32(GetDeviceInfoNoString(DeviceInfoParameter.Type), 0);
-            VendorId = BitConverter.ToUInt32(GetDeviceInfoNoString(DeviceInfoParameter.VendorId), 0);
-            MaxComputeUnits = BitConverter.ToUInt32(GetDeviceInfoNoString(DeviceInfoParameter.MaxComputeUnits), 0);
-            MaxWorkItemDimensions = BitConverter.ToUInt32(GetDeviceInfoNoString(DeviceInfoParameter.MaxWorkItemDimensions), 0);
-            MaxWorkGroupSize = BitConverter.ToUInt32(GetDeviceInfoNoString(DeviceInfoParameter.MaxWorkGroupSize), 0);
+            Name = Encoding.Default.GetString(InfoHelper.GetInfo(_deviceInfoInterop.clGetDeviceInfo, new IntPtr(Id), DeviceInfoParameter.Name));
+
+            Type = (DeviceType)BitConverter.ToUInt32(InfoHelper.GetInfo(deviceInfoInterop.clGetDeviceInfo, deviceId, DeviceInfoParameter.Type), 0);
+            VendorId = BitConverter.ToUInt32(InfoHelper.GetInfo(deviceInfoInterop.clGetDeviceInfo, deviceId, DeviceInfoParameter.VendorId), 0);
+            MaxComputeUnits = BitConverter.ToUInt32(InfoHelper.GetInfo(deviceInfoInterop.clGetDeviceInfo, deviceId, DeviceInfoParameter.MaxComputeUnits), 0);
+            MaxWorkItemDimensions = BitConverter.ToUInt32(InfoHelper.GetInfo(deviceInfoInterop.clGetDeviceInfo, deviceId, DeviceInfoParameter.MaxWorkItemDimensions), 0);
+            MaxWorkGroupSize = BitConverter.ToUInt32(InfoHelper.GetInfo(deviceInfoInterop.clGetDeviceInfo, deviceId, DeviceInfoParameter.MaxWorkGroupSize), 0);
 
             //TODO: Get bit width of size_t - could vary between uchar and int64 ... -.- Correlation to AddressBits - property?
-            var workItemSizeBytes = GetDeviceInfoNoString(DeviceInfoParameter.MaxWorkItemSizes);
+            var workItemSizeBytes = InfoHelper.GetInfo(deviceInfoInterop.clGetDeviceInfo, deviceId, DeviceInfoParameter.MaxWorkItemSizes);
             MaxWorkItemSizes = new uint[MaxWorkItemDimensions];
 
             for (var i = 0; i < MaxWorkItemDimensions; i++)
                 MaxWorkItemSizes[i] = BitConverter.ToUInt32(workItemSizeBytes.Skip(i * 8).Take(8).ToArray(), 0);
 
-            Available = BitConverter.ToBoolean(GetDeviceInfoNoString(DeviceInfoParameter.DeviceAvailable), 0);
-            MaxClockFrequency = BitConverter.ToUInt32(GetDeviceInfoNoString(DeviceInfoParameter.MaxClockFrequency), 0);
-            GlobalMemorySize = BitConverter.ToUInt32(GetDeviceInfoNoString(DeviceInfoParameter.GlobalMemSize), 0);
-            MaxConstantArgs = BitConverter.ToUInt32(GetDeviceInfoNoString(DeviceInfoParameter.MaxConstantArgs), 0);
-            AddressBits = BitConverter.ToUInt32(GetDeviceInfoNoString(DeviceInfoParameter.AddressBits), 0);
-            Vendor = GetDeviceInfo(DeviceInfoParameter.Vendor);
-        }
-
-        private string GetDeviceInfo(DeviceInfoParameter parameter)
-        {
-            return Encoding.Default.GetString(GetDeviceInfoNoString(parameter));
-        }
-
-        private byte[] GetDeviceInfoNoString(DeviceInfoParameter parameter)
-        {
-            var error = _deviceInfoInterop.clGetDeviceInfo(new IntPtr(Id), parameter, UIntPtr.Zero, null, out var infoSize);
-            error.ThrowOnError();
-
-            var info = new byte[infoSize.ToUInt32()];
-            error = _deviceInfoInterop.clGetDeviceInfo(new IntPtr(Id), parameter, infoSize, info, out _);
-            error.ThrowOnError();
-
-            return info;
+            Available = BitConverter.ToBoolean(InfoHelper.GetInfo(deviceInfoInterop.clGetDeviceInfo, deviceId, DeviceInfoParameter.DeviceAvailable), 0);
+            MaxClockFrequency = BitConverter.ToUInt32(InfoHelper.GetInfo(deviceInfoInterop.clGetDeviceInfo, deviceId, DeviceInfoParameter.MaxClockFrequency), 0);
+            GlobalMemorySize = BitConverter.ToUInt32(InfoHelper.GetInfo(deviceInfoInterop.clGetDeviceInfo, deviceId, DeviceInfoParameter.GlobalMemSize), 0);
+            MaxConstantArgs = BitConverter.ToUInt32(InfoHelper.GetInfo(deviceInfoInterop.clGetDeviceInfo, deviceId, DeviceInfoParameter.MaxConstantArgs), 0);
+            AddressBits = BitConverter.ToUInt32(InfoHelper.GetInfo(deviceInfoInterop.clGetDeviceInfo, deviceId, DeviceInfoParameter.AddressBits), 0);
+            Vendor = Encoding.Default.GetString(InfoHelper.GetInfo(_deviceInfoInterop.clGetDeviceInfo, new IntPtr(Id), DeviceInfoParameter.Vendor));
         }
 
         private void ReleaseUnmanagedResources()
@@ -154,7 +144,7 @@ namespace CL.Core.Model
         {
             if (obj is null) return false;
             if (ReferenceEquals(this, obj)) return true;
-            return obj.GetType() == GetType() && Equals((Device) obj);
+            return obj.GetType() == GetType() && Equals((Device)obj);
         }
 
         public override int GetHashCode()
