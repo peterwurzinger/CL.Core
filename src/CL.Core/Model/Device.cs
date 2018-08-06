@@ -38,12 +38,10 @@ namespace CL.Core.Model
         /// </summary>
         public uint VendorId { get; }
 
-
-        //TODO: This property could change. Make Lazy<bool>?
         /// <summary>
         /// Is true if the device is available and false if the device is not available.
         /// </summary>
-        public bool Available { get; }
+        public bool Available => BitConverter.ToBoolean(InfoHelper.GetInfo(_deviceInfoInterop.clGetDeviceInfo, new IntPtr(Id), DeviceInfoParameter.DeviceAvailable), 0);
 
         /// <summary>
         /// Maximum number of work-items that can be specified in each dimension of the work-group to clEnqueueNDRangeKernel. Returns n size_t entries, where n is the value returned by the query for CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS.The minimum value is (1, 1, 1).
@@ -108,7 +106,6 @@ namespace CL.Core.Model
             for (var i = 0; i < MaxWorkItemDimensions; i++)
                 MaxWorkItemSizes[i] = BitConverter.ToUInt32(workItemSizeBytes.Skip(i * 8).Take(8).ToArray(), 0);
 
-            Available = BitConverter.ToBoolean(InfoHelper.GetInfo(deviceInfoInterop.clGetDeviceInfo, deviceId, DeviceInfoParameter.DeviceAvailable), 0);
             MaxClockFrequency = BitConverter.ToUInt32(InfoHelper.GetInfo(deviceInfoInterop.clGetDeviceInfo, deviceId, DeviceInfoParameter.MaxClockFrequency), 0);
             GlobalMemorySize = BitConverter.ToUInt32(InfoHelper.GetInfo(deviceInfoInterop.clGetDeviceInfo, deviceId, DeviceInfoParameter.GlobalMemSize), 0);
             MaxConstantArgs = BitConverter.ToUInt32(InfoHelper.GetInfo(deviceInfoInterop.clGetDeviceInfo, deviceId, DeviceInfoParameter.MaxConstantArgs), 0);
