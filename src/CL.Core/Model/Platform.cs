@@ -6,11 +6,11 @@ using CL.Core.API;
 
 namespace CL.Core.Model
 {
-    public class Platform : IEquatable<Platform>
+    public class Platform : IHasId, IEquatable<Platform>
     {
         private readonly IPlatformInfoInterop _platformInterop;
 
-        public long Id { get; }
+        public IntPtr Id { get; }
         public string Name { get; }
         public string Vendor { get; }
         public string Profile { get; }
@@ -23,7 +23,7 @@ namespace CL.Core.Model
             if (deviceInfoInterop == null) throw new ArgumentNullException(nameof(deviceInfoInterop));
 
             //TODO: Check if Id exists
-            Id = platformId.ToInt64();
+            Id = platformId;
 
             Name = Encoding.Default.GetString(InfoHelper.GetInfo(_platformInterop.clGetPlatformInfo, platformId, PlatformInfoParameter.Name));
             Vendor = Encoding.Default.GetString(InfoHelper.GetInfo(_platformInterop.clGetPlatformInfo, platformId, PlatformInfoParameter.Vendor));

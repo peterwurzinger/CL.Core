@@ -5,7 +5,7 @@ using System.Text;
 
 namespace CL.Core.Model
 {
-    public class Device : IDisposable, IEquatable<Device>
+    public class Device : IHasId, IDisposable, IEquatable<Device>
     {
         private readonly IDeviceInfoInterop _deviceInfoInterop;
 
@@ -14,7 +14,7 @@ namespace CL.Core.Model
         /// <summary>
         /// ?
         /// </summary>
-        public long Id { get; }
+        public IntPtr Id { get; }
 
         public Platform Platform { get; }
 
@@ -41,7 +41,7 @@ namespace CL.Core.Model
         /// <summary>
         /// Is true if the device is available and false if the device is not available.
         /// </summary>
-        public bool Available => BitConverter.ToBoolean(InfoHelper.GetInfo(_deviceInfoInterop.clGetDeviceInfo, new IntPtr(Id), DeviceInfoParameter.DeviceAvailable), 0);
+        public bool Available => BitConverter.ToBoolean(InfoHelper.GetInfo(_deviceInfoInterop.clGetDeviceInfo, Id, DeviceInfoParameter.DeviceAvailable), 0);
 
         /// <summary>
         /// Maximum number of work-items that can be specified in each dimension of the work-group to clEnqueueNDRangeKernel. Returns n size_t entries, where n is the value returned by the query for CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS.The minimum value is (1, 1, 1).
@@ -90,8 +90,8 @@ namespace CL.Core.Model
             Platform = platform ?? throw new ArgumentNullException(nameof(platform));
             _deviceInfoInterop = deviceInfoInterop ?? throw new ArgumentNullException(nameof(deviceInfoInterop));
 
-            Id = deviceId.ToInt64();
-            Name = Encoding.Default.GetString(InfoHelper.GetInfo(_deviceInfoInterop.clGetDeviceInfo, new IntPtr(Id), DeviceInfoParameter.Name));
+            Id = deviceId;
+            Name = Encoding.Default.GetString(InfoHelper.GetInfo(_deviceInfoInterop.clGetDeviceInfo, deviceId, DeviceInfoParameter.Name));
 
             Type = (DeviceType)BitConverter.ToUInt32(InfoHelper.GetInfo(deviceInfoInterop.clGetDeviceInfo, deviceId, DeviceInfoParameter.Type), 0);
             VendorId = BitConverter.ToUInt32(InfoHelper.GetInfo(deviceInfoInterop.clGetDeviceInfo, deviceId, DeviceInfoParameter.VendorId), 0);
@@ -110,12 +110,12 @@ namespace CL.Core.Model
             GlobalMemorySize = BitConverter.ToUInt32(InfoHelper.GetInfo(deviceInfoInterop.clGetDeviceInfo, deviceId, DeviceInfoParameter.GlobalMemSize), 0);
             MaxConstantArgs = BitConverter.ToUInt32(InfoHelper.GetInfo(deviceInfoInterop.clGetDeviceInfo, deviceId, DeviceInfoParameter.MaxConstantArgs), 0);
             AddressBits = BitConverter.ToUInt32(InfoHelper.GetInfo(deviceInfoInterop.clGetDeviceInfo, deviceId, DeviceInfoParameter.AddressBits), 0);
-            Vendor = Encoding.Default.GetString(InfoHelper.GetInfo(_deviceInfoInterop.clGetDeviceInfo, new IntPtr(Id), DeviceInfoParameter.Vendor));
+            Vendor = Encoding.Default.GetString(InfoHelper.GetInfo(_deviceInfoInterop.clGetDeviceInfo, deviceId, DeviceInfoParameter.Vendor));
         }
 
         private void ReleaseUnmanagedResources()
         {
-            _deviceInfoInterop.clReleaseDevice(new IntPtr(Id)).ThrowOnError();
+            _deviceInfoInterop.clReleaseDevice(Id).ThrowOnError();
             // TODO release unmanaged resources here
         }
 

@@ -5,9 +5,10 @@ using System.Linq;
 
 namespace CL.Core.Model
 {
-    public class Context : IDisposable
+    public class Context : IHasId, IDisposable
     {
-        public long Id { get; }
+        public IntPtr Id { get; }
+
         public IReadOnlyCollection<Device> Devices { get; }
 
         //TODO: Context-Properties
@@ -29,19 +30,19 @@ namespace CL.Core.Model
 
             //TODO: Elaborate on this
             // ReSharper disable once VirtualMemberCallInConstructor
-            Id = CreateUnmanagedContext(contextInterop, devices).ToInt64();
+            Id = CreateUnmanagedContext(contextInterop, devices);
         }
 
         protected internal virtual IntPtr CreateUnmanagedContext(IContextInterop contextInterop, IReadOnlyCollection<Device> devices)
         {
-            var id = contextInterop.clCreateContext(IntPtr.Zero, (uint)devices.Count, devices.Select(device => new IntPtr(device.Id)).ToArray(), IntPtr.Zero, IntPtr.Zero, out var error);
+            var id = contextInterop.clCreateContext(IntPtr.Zero, (uint)devices.Count, devices.Select(device => device.Id).ToArray(), IntPtr.Zero, IntPtr.Zero, out var error);
             error.ThrowOnError();
             return id;
         }
 
         private void ReleaseUnmanagedResources()
         {
-            ContextInterop.clReleaseContext(new IntPtr(Id)).ThrowOnError();
+            ContextInterop.clReleaseContext(Id).ThrowOnError();
         }
 
         protected virtual void Dispose(bool disposing)

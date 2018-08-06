@@ -28,7 +28,7 @@ namespace CL.Core.Model
             var fp = Marshal.GetFunctionPointerForDelegate((ContextErrorDelegate)ErrorCallbackProxy);
 
             //TODO: Is there a need to pass User-Data to OpenCL? In my understanding it only gets passed back when the callback function is invoked, so why not keep it in managed memory?
-            var id = contextInterop.clCreateContext(IntPtr.Zero, (uint)devices.Count, devices.Select(device => new IntPtr(device.Id)).ToArray(), fp, IntPtr.Zero, out var error);
+            var id = contextInterop.clCreateContext(IntPtr.Zero, (uint)devices.Count, devices.Select(device => device.Id).ToArray(), fp, IntPtr.Zero, out var error);
             error.ThrowOnError();
             return id;
         }
