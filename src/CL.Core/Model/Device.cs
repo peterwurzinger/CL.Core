@@ -115,8 +115,10 @@ namespace CL.Core.Model
 
         private void ReleaseUnmanagedResources()
         {
+            if (_deviceInfoInterop == null || Id == IntPtr.Zero)
+                return;
+
             _deviceInfoInterop.clReleaseDevice(Id).ThrowOnError();
-            // TODO release unmanaged resources here
         }
 
         public void Dispose()

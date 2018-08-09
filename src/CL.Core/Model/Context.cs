@@ -8,12 +8,12 @@ namespace CL.Core.Model
     public class Context : IHasId, IDisposable
     {
         public IntPtr Id { get; }
-
         public IReadOnlyCollection<Device> Devices { get; }
 
         //TODO: Context-Properties
 
         protected readonly IContextInterop ContextInterop;
+        private readonly IList<CommandQueue> _attachtedCommandQueues;
         private bool _disposed;
 
         public Context(IContextInterop contextInterop, IReadOnlyCollection<Device> devices)
@@ -31,6 +31,7 @@ namespace CL.Core.Model
             //TODO: Elaborate on this
             // ReSharper disable once VirtualMemberCallInConstructor
             Id = CreateUnmanagedContext(contextInterop, devices);
+            _attachtedCommandQueues = new List<CommandQueue>();
         }
 
         protected internal virtual IntPtr CreateUnmanagedContext(IContextInterop contextInterop, IReadOnlyCollection<Device> devices)
@@ -40,8 +41,28 @@ namespace CL.Core.Model
             return id;
         }
 
+        public CommandQueue CreateCommandQueue(Device device, bool enableProfiling, bool enableOutOfOrderExecutionMode, ICommandQueueInterop commandQueueInterop)
+        {
+            if (_disposed)
+                throw new ObjectDisposedException(GetType().FullName);
+
+            if (device == null)
+                throw new ArgumentNullException(nameof(device));
+
+            if (!Devices.Contains(device))
+                throw new ArgumentException("Device is not attachted to calling calling context.", nameof(device));
+
+            var commandQueue = new CommandQueue(this, device, enableProfiling, enableOutOfOrderExecutionMode, commandQueueInterop);
+            _attachtedCommandQueues.Add(commandQueue);
+
+            return commandQueue;
+        }
+
         private void ReleaseUnmanagedResources()
         {
+            if (ContextInterop == null || Id == IntPtr.Zero)
+                return;
+
             ContextInterop.clReleaseContext(Id).ThrowOnError();
         }
 
@@ -52,8 +73,10 @@ namespace CL.Core.Model
 
             if (disposing)
             {
-                // TODO: dispose managed state (managed objects).
+                foreach (var commandQueue in _attachtedCommandQueues)
+                    commandQueue.Dispose();
             }
+
             ReleaseUnmanagedResources();
             // TODO: set large fields to null - if any
 
