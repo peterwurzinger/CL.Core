@@ -8,20 +8,17 @@ namespace CL.Core.Samples.NetCore
     {
         public static void Main()
         {
-            var nativeDeviceInterop = new NativeDeviceInfoInterop();
-            var nativeContextInterop = new NativeContextInterop();
-            var nativePlatformInfoInterop = new NativePlatformInfoInterop();
-            var nativeCommandQueueInterop = new NativeCommandQueueInterop();
+            var api = new NativeOpenClApi();
             
-            var factory = new PatformFactory(nativePlatformInfoInterop, nativeDeviceInterop);
+            var factory = new PatformFactory(api);
             var platforms = factory.GetPlatforms();
             foreach (var platform in platforms)
             {
-                var ctx = new Context(nativeContextInterop, platform.Devices);
+                var ctx = new Context(api, platform.Devices);
 
                 foreach (var device in platform.Devices)
                 {
-                    var cq = ctx.CreateCommandQueue(device, false, false, nativeCommandQueueInterop);
+                    var cq = ctx.CreateCommandQueue(device, false, false);
                     Console.WriteLine(cq.Id);
                 }
 

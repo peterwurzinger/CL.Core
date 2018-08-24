@@ -8,8 +8,7 @@ namespace CL.Core.Model
 {
     public class Platform : IHasId, IEquatable<Platform>
     {
-        private readonly IPlatformInfoInterop _platformInterop;
-
+        private readonly IOpenClApi _openClApi;
         public IntPtr Id { get; }
         public string Name { get; }
         public string Vendor { get; }
@@ -17,28 +16,27 @@ namespace CL.Core.Model
         public IReadOnlyCollection<string> Extensions { get; }
         public IReadOnlyCollection<Device> Devices { get; }
 
-        internal Platform(IntPtr platformId, IPlatformInfoInterop platformInterop, IDeviceInfoInterop deviceInfoInterop)
+        internal Platform(IntPtr platformId, IOpenClApi openClApi)
         {
-            _platformInterop = platformInterop ?? throw new ArgumentNullException(nameof(platformInterop));
-            if (deviceInfoInterop == null) throw new ArgumentNullException(nameof(deviceInfoInterop));
+            _openClApi = openClApi ?? throw new ArgumentNullException(nameof(openClApi));
 
             //TODO: Check if Id exists
             Id = platformId;
 
-            Name = Encoding.Default.GetString(InfoHelper.GetInfo(_platformInterop.clGetPlatformInfo, platformId, PlatformInfoParameter.Name));
-            Vendor = Encoding.Default.GetString(InfoHelper.GetInfo(_platformInterop.clGetPlatformInfo, platformId, PlatformInfoParameter.Vendor));
-            Profile = Encoding.Default.GetString(InfoHelper.GetInfo(_platformInterop.clGetPlatformInfo, platformId, PlatformInfoParameter.Profile));
-            Extensions = Encoding.Default.GetString(InfoHelper.GetInfo(_platformInterop.clGetPlatformInfo, platformId, PlatformInfoParameter.Extensions)).Split(' ');
+            Name = Encoding.Default.GetString(InfoHelper.GetInfo(_openClApi.PlatformApi.clGetPlatformInfo, platformId, PlatformInfoParameter.Name));
+            Vendor = Encoding.Default.GetString(InfoHelper.GetInfo(_openClApi.PlatformApi.clGetPlatformInfo, platformId, PlatformInfoParameter.Vendor));
+            Profile = Encoding.Default.GetString(InfoHelper.GetInfo(_openClApi.PlatformApi.clGetPlatformInfo, platformId, PlatformInfoParameter.Profile));
+            Extensions = Encoding.Default.GetString(InfoHelper.GetInfo(_openClApi.PlatformApi.clGetPlatformInfo, platformId, PlatformInfoParameter.Extensions)).Split(' ');
 
 
-            var errorCode = deviceInfoInterop.clGetDeviceIDs(platformId, DeviceType.All, 0, null, out var numDevices);
+            var errorCode = _openClApi.DeviceApi.clGetDeviceIDs(platformId, DeviceType.All, 0, null, out var numDevices);
             errorCode.ThrowOnError();
 
             var deviceIds = new IntPtr[numDevices];
-            errorCode = deviceInfoInterop.clGetDeviceIDs(platformId, DeviceType.All, numDevices, deviceIds, out _);
+            errorCode = _openClApi.DeviceApi.clGetDeviceIDs(platformId, DeviceType.All, numDevices, deviceIds, out _);
             errorCode.ThrowOnError();
 
-            Devices = deviceIds.Select(deviceId => new Device(this, deviceId, deviceInfoInterop)).ToList().AsReadOnly();
+            Devices = deviceIds.Select(deviceId => new Device(this, deviceId, _openClApi.DeviceApi)).ToList().AsReadOnly();
         }
 
         public bool Equals(Platform other)

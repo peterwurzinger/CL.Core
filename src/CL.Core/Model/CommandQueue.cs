@@ -5,17 +5,17 @@ namespace CL.Core.Model
 {
     public class CommandQueue : IHasId, IDisposable, IEquatable<CommandQueue>
     {
-        private readonly ICommandQueueInterop _commandQueueInterop;
+        private readonly ICommandQueueApi _commandQueueApi;
         private bool _disposed;
         public IntPtr Id { get; }
         public Context Context { get; }
         public Device Device { get; }
 
-        internal CommandQueue(Context context, Device device, bool enableProfiling, bool enableOutOfOrderExcecutionMode, ICommandQueueInterop commandQueueInterop)
+        internal CommandQueue(Context context, Device device, bool enableProfiling, bool enableOutOfOrderExcecutionMode, ICommandQueueApi commandQueueApi)
         {
             Context = context ?? throw new ArgumentNullException(nameof(context));
             Device = device ?? throw new ArgumentNullException(nameof(device));
-            _commandQueueInterop = commandQueueInterop ?? throw new ArgumentNullException(nameof(commandQueueInterop));
+            _commandQueueApi = commandQueueApi ?? throw new ArgumentNullException(nameof(commandQueueApi));
 
             CommandQueueProperties props = 0b0;
             if (enableProfiling)
@@ -23,7 +23,7 @@ namespace CL.Core.Model
             if (enableOutOfOrderExcecutionMode)
                 props |= CommandQueueProperties.OutOfOrderExecModeEnable;
 
-            var id = _commandQueueInterop.clCreateCommandQueue(context.Id, device.Id, props, out var error);
+            var id = _commandQueueApi.clCreateCommandQueue(context.Id, device.Id, props, out var error);
             error.ThrowOnError();
 
             Id = id;
@@ -42,7 +42,7 @@ namespace CL.Core.Model
 
         ~CommandQueue()
         {
-            if (_commandQueueInterop == null || Id == IntPtr.Zero)
+            if (_commandQueueApi == null || Id == IntPtr.Zero)
                 return;
 
             ReleaseUnmanagedResources();
@@ -50,7 +50,7 @@ namespace CL.Core.Model
 
         private void ReleaseUnmanagedResources()
         {
-            var error = _commandQueueInterop.clReleaseCommandQueue(Id);
+            var error = _commandQueueApi.clReleaseCommandQueue(Id);
             error.ThrowOnError();
         }
 

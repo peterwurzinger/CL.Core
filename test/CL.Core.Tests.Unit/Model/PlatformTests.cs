@@ -1,31 +1,16 @@
-﻿using CL.Core.Fakes;
-using CL.Core.Model;
+﻿using CL.Core.Model;
 using System;
 using Xunit;
 
 namespace CL.Core.Tests.Unit.Model
 {
-    public class PlatformTests
+    public class PlatformTests : UnitTestBase
     {
-        private readonly FakePlatformInfoInterop _fakePlatformInfoInterop;
-        private readonly FakeDeviceInfoInterop _fakeDeviceInfoInterop;
-
-        public PlatformTests()
-        {
-            _fakePlatformInfoInterop = new FakePlatformInfoInterop();
-            _fakeDeviceInfoInterop = new FakeDeviceInfoInterop();
-        }
 
         [Fact]
-        public void CtorShouldThrowExceptionIfPlatformInfoServiceIsNull()
+        public void CtorShouldThrowExceptionIfOpenClApiNull()
         {
-            Assert.Throws<ArgumentNullException>(() => new Platform(IntPtr.Zero, null, _fakeDeviceInfoInterop));
-        }
-
-        [Fact]
-        public void CtorShouldThrowExceptionIfDeviceInfoServiceIsNull()
-        {
-            Assert.Throws<ArgumentNullException>(() => new Platform(IntPtr.Zero, _fakePlatformInfoInterop, null));
+            Assert.Throws<ArgumentNullException>(() => new Platform(IntPtr.Zero, null));
         }
 
         //TODO: To be continued

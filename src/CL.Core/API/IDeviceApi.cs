@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace CL.Core.API
 {
-    public interface IDeviceInfoInterop
+    public interface IDeviceApi
     {
         OpenClErrorCode clGetDeviceIDs(IntPtr platformId, DeviceType type, uint numEntries, [MarshalAs(UnmanagedType.LPArray)] IntPtr[] devices, [MarshalAs(UnmanagedType.U4)] out uint numDevices);
 

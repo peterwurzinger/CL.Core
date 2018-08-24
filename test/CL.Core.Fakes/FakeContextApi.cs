@@ -3,7 +3,7 @@ using System;
 
 namespace CL.Core.Fakes
 {
-    public class FakeContextInterop : IContextInterop
+    public class FakeContextApi : IContextApi
     {
         public IntPtr? clCreateContextResult { get; set; }
         public OpenClErrorCode? ClCreateContextErrorCode { get; set; }

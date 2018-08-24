@@ -15,20 +15,20 @@ namespace CL.Core.Model
         private bool _disposed;
         private GCHandle _delegateHandle;
 
-        public ContextWithCallback(IReadOnlyCollection<Device> devices, IContextInterop contextInterop, ContextErrorUserCallback userCallback, TUserData userData)
-            : base(contextInterop, devices)
+        public ContextWithCallback(IReadOnlyCollection<Device> devices, IOpenClApi openClApi, ContextErrorUserCallback userCallback, TUserData userData)
+            : base(openClApi, devices)
         {
             _userCallback = userCallback ?? throw new ArgumentNullException(nameof(userCallback));
             _userData = userData;
         }
 
-        protected internal override IntPtr CreateUnmanagedContext(IContextInterop contextInterop, IReadOnlyCollection<Device> devices)
+        protected internal override IntPtr CreateUnmanagedContext(IContextApi contextApi, IReadOnlyCollection<Device> devices)
         {
             _delegateHandle = GCHandle.Alloc((ContextErrorDelegate)ErrorCallbackProxy);
             var fp = Marshal.GetFunctionPointerForDelegate((ContextErrorDelegate)ErrorCallbackProxy);
 
             //TODO: Is there a need to pass User-Data to OpenCL? In my understanding it only gets passed back when the callback function is invoked, so why not keep it in managed memory?
-            var id = contextInterop.clCreateContext(IntPtr.Zero, (uint)devices.Count, devices.Select(device => device.Id).ToArray(), fp, IntPtr.Zero, out var error);
+            var id = contextApi.clCreateContext(IntPtr.Zero, (uint)devices.Count, devices.Select(device => device.Id).ToArray(), fp, IntPtr.Zero, out var error);
             error.ThrowOnError();
             return id;
         }

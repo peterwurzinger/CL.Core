@@ -3,9 +3,9 @@ using CL.Core.API;
 
 namespace CL.Core.Fakes
 {
-    public class FakeCommandQueueInterop : ICommandQueueInterop
+    public class FakeCommandQueueApi : ICommandQueueApi
     {
-        public FakeCommandQueueInterop()
+        public FakeCommandQueueApi()
         {
             //Return at least 4 bytes to make result interpretable as numeric value
             clGetCommandQueueInfoParamValueSizeReturn = 4;

@@ -4,7 +4,7 @@ using CL.Core.API;
 
 namespace CL.Core.Native
 {
-    public class NativeDeviceInfoInterop : IDeviceInfoInterop
+    internal class NativeDeviceApi : IDeviceApi
     {
         [DllImport(Constants.DLL, EntryPoint = "clGetDeviceIDs")]
         public static extern OpenClErrorCode clGetDeviceIDs(IntPtr platformId, DeviceType type, uint numEntries, [MarshalAs(UnmanagedType.LPArray)] IntPtr[] devices, [MarshalAs(UnmanagedType.U4)] out uint numDevices);
@@ -15,18 +15,18 @@ namespace CL.Core.Native
         [DllImport(Constants.DLL, EntryPoint = "clReleaseDevice")]
         public static extern OpenClErrorCode clReleaseDevice(IntPtr device);
 
-        OpenClErrorCode IDeviceInfoInterop.clGetDeviceInfo(IntPtr device, DeviceInfoParameter parameter, uint pValueSize, byte[] paramValue,
+        OpenClErrorCode IDeviceApi.clGetDeviceInfo(IntPtr device, DeviceInfoParameter parameter, uint pValueSize, byte[] paramValue,
             out uint paramValueSizeRet)
         {
             return clGetDeviceInfo(device, parameter, pValueSize, paramValue, out paramValueSizeRet);
         }
 
-        OpenClErrorCode IDeviceInfoInterop.clReleaseDevice(IntPtr device)
+        OpenClErrorCode IDeviceApi.clReleaseDevice(IntPtr device)
         {
             return clReleaseDevice(device);
         }
 
-        OpenClErrorCode IDeviceInfoInterop.clGetDeviceIDs(IntPtr platformId, DeviceType type, uint numEntries, IntPtr[] devices, out uint numDevices)
+        OpenClErrorCode IDeviceApi.clGetDeviceIDs(IntPtr platformId, DeviceType type, uint numEntries, IntPtr[] devices, out uint numDevices)
         {
             return clGetDeviceIDs(platformId, type, numEntries, devices, out numDevices);
         }

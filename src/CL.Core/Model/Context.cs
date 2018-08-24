@@ -12,13 +12,14 @@ namespace CL.Core.Model
 
         //TODO: Context-Properties
 
-        protected readonly IContextInterop ContextInterop;
+        protected readonly IOpenClApi OpenClApi;
         private readonly IList<CommandQueue> _attachtedCommandQueues;
         private bool _disposed;
 
-        public Context(IContextInterop contextInterop, IReadOnlyCollection<Device> devices)
+        //TODO: Make method of Platform, since contexts spanning multiple platforms is not supported anyway 
+        public Context(IOpenClApi openClApi, IReadOnlyCollection<Device> devices)
         {
-            ContextInterop = contextInterop ?? throw new ArgumentNullException(nameof(contextInterop));
+            OpenClApi = openClApi ?? throw new ArgumentNullException(nameof(openClApi));
             if (devices == null) throw new ArgumentNullException(nameof(devices));
             if (devices.Count == 0)
                 throw new ArgumentException("Value cannot be an empty collection.", nameof(devices));
@@ -30,18 +31,18 @@ namespace CL.Core.Model
 
             //TODO: Elaborate on this
             // ReSharper disable once VirtualMemberCallInConstructor
-            Id = CreateUnmanagedContext(contextInterop, devices);
+            Id = CreateUnmanagedContext(openClApi.ContextApi, devices);
             _attachtedCommandQueues = new List<CommandQueue>();
         }
 
-        protected internal virtual IntPtr CreateUnmanagedContext(IContextInterop contextInterop, IReadOnlyCollection<Device> devices)
+        protected internal virtual IntPtr CreateUnmanagedContext(IContextApi contextApi, IReadOnlyCollection<Device> devices)
         {
-            var id = contextInterop.clCreateContext(IntPtr.Zero, (uint)devices.Count, devices.Select(device => device.Id).ToArray(), IntPtr.Zero, IntPtr.Zero, out var error);
+            var id = contextApi.clCreateContext(IntPtr.Zero, (uint)devices.Count, devices.Select(device => device.Id).ToArray(), IntPtr.Zero, IntPtr.Zero, out var error);
             error.ThrowOnError();
             return id;
         }
 
-        public CommandQueue CreateCommandQueue(Device device, bool enableProfiling, bool enableOutOfOrderExecutionMode, ICommandQueueInterop commandQueueInterop)
+        public CommandQueue CreateCommandQueue(Device device, bool enableProfiling, bool enableOutOfOrderExecutionMode)
         {
             if (_disposed)
                 throw new ObjectDisposedException(GetType().FullName);
@@ -52,7 +53,7 @@ namespace CL.Core.Model
             if (!Devices.Contains(device))
                 throw new ArgumentException("Device is not attachted to calling calling context.", nameof(device));
 
-            var commandQueue = new CommandQueue(this, device, enableProfiling, enableOutOfOrderExecutionMode, commandQueueInterop);
+            var commandQueue = new CommandQueue(this, device, enableProfiling, enableOutOfOrderExecutionMode, OpenClApi.CommandQueueApi);
             _attachtedCommandQueues.Add(commandQueue);
 
             return commandQueue;
@@ -60,10 +61,10 @@ namespace CL.Core.Model
 
         private void ReleaseUnmanagedResources()
         {
-            if (ContextInterop == null || Id == IntPtr.Zero)
+            if (OpenClApi?.ContextApi == null || Id == IntPtr.Zero)
                 return;
 
-            ContextInterop.clReleaseContext(Id).ThrowOnError();
+            OpenClApi.ContextApi.clReleaseContext(Id).ThrowOnError();
         }
 
         protected virtual void Dispose(bool disposing)

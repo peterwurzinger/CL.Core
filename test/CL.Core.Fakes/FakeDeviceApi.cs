@@ -3,10 +3,10 @@ using System;
 
 namespace CL.Core.Fakes
 {
-    public class FakeDeviceInfoInterop : IDeviceInfoInterop
+    public class FakeDeviceApi : IDeviceApi
     {
 
-        public FakeDeviceInfoInterop()
+        public FakeDeviceApi()
         {
             //Return at least 4 bytes to make result interpretable as numeric value
             clGetDeviceInfoParamValueSizeRet = 4;

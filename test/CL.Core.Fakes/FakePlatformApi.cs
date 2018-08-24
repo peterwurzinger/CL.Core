@@ -3,7 +3,7 @@ using System;
 
 namespace CL.Core.Fakes
 {
-    public class FakePlatformInfoInterop : IPlatformInfoInterop
+    public class FakePlatformApi : IPlatformApi
     {
         public OpenClErrorCode? clGetPlatformIDsResult { get; set; }
         public uint clGetPlatformIDsNumPlatforms { get; set; }

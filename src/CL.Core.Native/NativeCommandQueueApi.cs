@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace CL.Core.Native
 {
-    public class NativeCommandQueueInterop : ICommandQueueInterop
+    internal class NativeCommandQueueApi : ICommandQueueApi
     {
 
         [DllImport(Constants.DLL, EntryPoint = "clRetainCommandQueue")]
@@ -24,22 +24,22 @@ namespace CL.Core.Native
             CommandQueueInfoParameter paramName, uint paramValueSize,
             byte[] paramValue, out uint paramValueSizeReturn);
 
-        IntPtr ICommandQueueInterop.clCreateCommandQueue(IntPtr context, IntPtr device, CommandQueueProperties properties, out OpenClErrorCode error)
+        IntPtr ICommandQueueApi.clCreateCommandQueue(IntPtr context, IntPtr device, CommandQueueProperties properties, out OpenClErrorCode error)
         {
             return clCreateCommandQueue(context, device, properties, out error);
         }
 
-        OpenClErrorCode ICommandQueueInterop.clRetainCommandQueue(IntPtr commandQueue)
+        OpenClErrorCode ICommandQueueApi.clRetainCommandQueue(IntPtr commandQueue)
         {
             return clRetainCommandQueue(commandQueue);
         }
 
-        OpenClErrorCode ICommandQueueInterop.clReleaseCommandQueue(IntPtr commandQueue)
+        OpenClErrorCode ICommandQueueApi.clReleaseCommandQueue(IntPtr commandQueue)
         {
             return clReleaseCommandQueue(commandQueue);
         }
 
-        OpenClErrorCode ICommandQueueInterop.clGetCommandQueueInfo(IntPtr commandQueue, CommandQueueInfoParameter paramName, uint paramValueSize,
+        OpenClErrorCode ICommandQueueApi.clGetCommandQueueInfo(IntPtr commandQueue, CommandQueueInfoParameter paramName, uint paramValueSize,
             byte[] paramValue, out uint paramValueSizeReturn)
         {
             return clGetCommandQueueInfo(commandQueue, paramName, paramValueSize, paramValue,
