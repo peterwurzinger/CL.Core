@@ -84,5 +84,15 @@ namespace CL.Core.API
         /// * CL_OUT_OF_HOST_MEMORY if there is a failure to allocate resources required by the OpenCL implementation on the host. </returns>
         OpenClErrorCode clEnqueueWriteBuffer(IntPtr commandQueue, IntPtr buffer, bool blockingWrite, uint offset,
             uint cb, IntPtr ptr, uint numEventsInWaitList, IntPtr[] eventWaitList, out IntPtr @event);
+
+        /// <summary>
+        /// Decrements the memory object reference count. 
+        /// </summary>
+        /// <param name="memobj"></param>
+        /// <returns>Returns CL_SUCCESS if the function is executed successfully. Otherwise, it returns one of the following errors:
+        /// * CL_INVALID_MEM_OBJECT if <param name="memobj">memobj</param> is a not a valid memory object. 
+        /// * CL_OUT_OF_RESOURCES if there is a failure to allocate resources required by the OpenCL implementation on the device. 
+        /// * CL_OUT_OF_HOST_MEMORY if there is a failure to allocate resources required by the OpenCL implementation on the host. </returns>
+        OpenClErrorCode clReleaseMemObject(IntPtr memobj);
     }
 }

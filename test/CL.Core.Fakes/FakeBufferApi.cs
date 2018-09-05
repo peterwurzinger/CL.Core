@@ -39,5 +39,11 @@ namespace CL.Core.Fakes
             @event = clEnqueueWriteBufferEvent ?? IntPtr.Zero;
             return clEnqueueWriteBufferResult ?? OpenClErrorCode.Success;
         }
+
+        public OpenClErrorCode? clReleaseMemObjectResult { get; set; }
+        public OpenClErrorCode clReleaseMemObject(IntPtr memobj)
+        {
+            return clReleaseMemObjectResult ?? OpenClErrorCode.Success;
+        }
     }
 }

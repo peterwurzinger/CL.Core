@@ -25,6 +25,9 @@ namespace CL.Core.Native
             bool blockingWrite, uint offset, uint cb,
             IntPtr ptr, uint numEventsInWaitList, IntPtr[] eventWaitList, out IntPtr @event);
 
+        [DllImport(Constants.DLL, EntryPoint = "clReleaseMemObject")]
+        public static extern OpenClErrorCode clReleaseMemObject(IntPtr memobj);
+
 
         IntPtr IBufferApi.clCreateSubBuffer(IntPtr buffer, MemoryFlags flags, BufferCreateType bufferCreateType, IntPtr bufferCreateInfo,
             out OpenClErrorCode errorCode)
@@ -47,6 +50,11 @@ namespace CL.Core.Native
         IntPtr IBufferApi.clCreateBuffer(IntPtr context, MemoryFlags flags, uint size, IntPtr hostPtr, out OpenClErrorCode errorCode)
         {
             return clCreateBuffer(context, flags, size, hostPtr, out errorCode);
+        }
+
+        OpenClErrorCode IBufferApi.clReleaseMemObject(IntPtr memobj)
+        {
+            return clReleaseMemObject(memobj);
         }
     }
 }

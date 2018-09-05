@@ -13,7 +13,8 @@ namespace CL.Core.Model
         //TODO: Context-Properties
 
         protected readonly IOpenClApi OpenClApi;
-        private readonly IList<CommandQueue> _attachtedCommandQueues;
+        private readonly IList<CommandQueue> _attachedCommandQueues;
+        private readonly IList<MemoryObject> _attachedMemoryObjects;
         private bool _disposed;
 
         //TODO: Make method of Platform, since contexts spanning multiple platforms is not supported anyway 
@@ -32,7 +33,9 @@ namespace CL.Core.Model
             //TODO: Elaborate on this
             // ReSharper disable once VirtualMemberCallInConstructor
             Id = CreateUnmanagedContext(openClApi.ContextApi, devices);
-            _attachtedCommandQueues = new List<CommandQueue>();
+
+            _attachedCommandQueues = new List<CommandQueue>();
+            _attachedMemoryObjects = new List<MemoryObject>();
         }
 
         protected internal virtual IntPtr CreateUnmanagedContext(IContextApi contextApi, IReadOnlyCollection<Device> devices)
@@ -54,9 +57,17 @@ namespace CL.Core.Model
                 throw new ArgumentException("Device is not attachted to calling calling context.", nameof(device));
 
             var commandQueue = new CommandQueue(this, device, enableProfiling, enableOutOfOrderExecutionMode, OpenClApi.CommandQueueApi);
-            _attachtedCommandQueues.Add(commandQueue);
+            _attachedCommandQueues.Add(commandQueue);
 
             return commandQueue;
+        }
+
+        public Buffer CreateBuffer()
+        {
+            var buffer = new Buffer(OpenClApi, this);
+            _attachedMemoryObjects.Add(buffer);
+
+            return buffer;
         }
 
         private void ReleaseUnmanagedResources()
@@ -74,8 +85,11 @@ namespace CL.Core.Model
 
             if (disposing)
             {
-                foreach (var commandQueue in _attachtedCommandQueues)
+                foreach (var commandQueue in _attachedCommandQueues)
                     commandQueue.Dispose();
+
+                foreach (var memoryObject in _attachedMemoryObjects)
+                    memoryObject.Dispose();
             }
 
             ReleaseUnmanagedResources();
