@@ -6,5 +6,6 @@
         IDeviceApi DeviceApi { get; }
         ICommandQueueApi CommandQueueApi { get; }
         IContextApi ContextApi { get; }
+        IBufferApi BufferApi { get; }
     }
 }

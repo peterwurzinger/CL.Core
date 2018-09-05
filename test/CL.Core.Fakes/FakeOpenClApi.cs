@@ -16,12 +16,16 @@ namespace CL.Core.Fakes
         public IContextApi ContextApi { get; }
         public FakeContextApi FakeContextApi { get; }
 
+        public IBufferApi BufferApi { get; }
+        public FakeBufferApi FakeBufferApi { get; }
+
         public FakeOpenClApi()
         {
             PlatformApi = FakePlatformApi = new FakePlatformApi();
             DeviceApi = FakeDeviceApi = new FakeDeviceApi();
             CommandQueueApi = FakeCommandQueueApi = new FakeCommandQueueApi();
             ContextApi = FakeContextApi = new FakeContextApi();
+            BufferApi = FakeBufferApi = new FakeBufferApi();
         }
     }
 }
