@@ -13,6 +13,8 @@ namespace CL.Core.API
         /// <param name="hostPtr">A pointer to the buffer data that may already be allocated by the application. The size of the buffer that host_ptr points to must be greater than or equal to the size bytes. </param>
         /// <param name="errorCode">Returns an appropriate error code. If errorCode is NULL, no error code is returned. </param>
         /// <returns></returns>
+        
+        //TODO: Make size_t - params ulong?
         IntPtr clCreateBuffer(IntPtr context, MemoryFlags flags, uint size, IntPtr hostPtr, out OpenClErrorCode errorCode);
 
         /// <summary>

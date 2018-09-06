@@ -62,12 +62,10 @@ namespace CL.Core.Model
             return commandQueue;
         }
 
-        public Buffer CreateBuffer()
+        public BufferStubConfiguration<T> CreateBuffer<T>()
+        where T : unmanaged
         {
-            var buffer = new Buffer(OpenClApi, this);
-            _attachedMemoryObjects.Add(buffer);
-
-            return buffer;
+            return new BufferStubConfiguration<T>(OpenClApi, this, b => _attachedMemoryObjects.Add(b));
         }
 
         private void ReleaseUnmanagedResources()
