@@ -7,5 +7,6 @@
         ICommandQueueApi CommandQueueApi { get; }
         IContextApi ContextApi { get; }
         IBufferApi BufferApi { get; }
+        IProgramApi ProgramApi { get; }
     }
 }

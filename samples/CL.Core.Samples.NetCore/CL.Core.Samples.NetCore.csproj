@@ -10,4 +10,10 @@
     <ProjectReference Include="..\..\src\CL.Core\CL.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="ExampleProgram.cl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

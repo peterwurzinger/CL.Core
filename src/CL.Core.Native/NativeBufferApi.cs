@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace CL.Core.Native
 {
-    public class NativeBufferApi : IBufferApi
+    internal class NativeBufferApi : IBufferApi
     {
         [DllImport(Constants.DLL, EntryPoint = "clCreateBuffer")]
         public static extern IntPtr clCreateBuffer(IntPtr context, MemoryFlags flags, uint size, IntPtr hostPtr,

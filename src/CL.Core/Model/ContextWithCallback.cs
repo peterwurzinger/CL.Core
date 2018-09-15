@@ -50,7 +50,7 @@ namespace CL.Core.Model
                 {
                     _delegateHandle.Free();
                 }
-                //TODO: Unmanaged ressources to free?
+                //TODO: Unmanaged resources to free?
                 _disposed = true;
             }
             base.Dispose(disposing);

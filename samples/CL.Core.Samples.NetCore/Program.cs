@@ -1,6 +1,7 @@
 ﻿using CL.Core.Model;
 using CL.Core.Native;
 using System;
+using System.IO;
 
 namespace CL.Core.Samples.NetCore
 {
@@ -15,7 +16,11 @@ namespace CL.Core.Samples.NetCore
             foreach (var platform in platforms)
             {
                 var ctx = new Context(api, platform.Devices);
-                
+
+                var file = new FileInfo("ExampleProgram.cl");
+                var program = ctx.CreateProgram(file);
+                program.BuildAsync(ctx.Devices).Wait();
+
                 var hostMem = new byte[100];
                 var hostBuffer = ctx.CreateBuffer<byte>().ByHostMemory(hostMem).AsReadWrite();
 

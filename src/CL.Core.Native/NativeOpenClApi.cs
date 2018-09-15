@@ -9,6 +9,7 @@ namespace CL.Core.Native
         public ICommandQueueApi CommandQueueApi { get; }
         public IContextApi ContextApi { get; }
         public IBufferApi BufferApi { get; }
+        public IProgramApi ProgramApi { get; }
 
         public NativeOpenClApi()
         {
@@ -17,6 +18,7 @@ namespace CL.Core.Native
             CommandQueueApi = new NativeCommandQueueApi();
             ContextApi = new NativeContextApi();
             BufferApi = new NativeBufferApi();
+            ProgramApi = new NativeProgramApi();
         }
     }
 }

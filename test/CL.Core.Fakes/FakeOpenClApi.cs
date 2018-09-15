@@ -19,6 +19,9 @@ namespace CL.Core.Fakes
         public IBufferApi BufferApi { get; }
         public FakeBufferApi FakeBufferApi { get; }
 
+        public IProgramApi ProgramApi { get; }
+        public FakeProgramApi FakeProgramApi { get; }
+
         public FakeOpenClApi()
         {
             PlatformApi = FakePlatformApi = new FakePlatformApi();
@@ -26,6 +29,7 @@ namespace CL.Core.Fakes
             CommandQueueApi = FakeCommandQueueApi = new FakeCommandQueueApi();
             ContextApi = FakeContextApi = new FakeContextApi();
             BufferApi = FakeBufferApi = new FakeBufferApi();
+            ProgramApi = FakeProgramApi = new FakeProgramApi();
         }
     }
 }

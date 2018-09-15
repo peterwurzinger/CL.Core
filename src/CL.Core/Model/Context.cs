@@ -1,6 +1,7 @@
 ﻿using CL.Core.API;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace CL.Core.Model
@@ -10,11 +11,13 @@ namespace CL.Core.Model
         public IntPtr Id { get; }
         public IReadOnlyCollection<Device> Devices { get; }
 
-        //TODO: Context-Properties
+        //TODO: Context-Properties?
 
         protected readonly IOpenClApi OpenClApi;
         private readonly IList<CommandQueue> _attachedCommandQueues;
         private readonly IList<MemoryObject> _attachedMemoryObjects;
+        private readonly IList<Program> _attachedProgramObjects;
+
         private bool _disposed;
 
         //TODO: Make method of Platform, since contexts spanning multiple platforms is not supported anyway 
@@ -36,6 +39,7 @@ namespace CL.Core.Model
 
             _attachedCommandQueues = new List<CommandQueue>();
             _attachedMemoryObjects = new List<MemoryObject>();
+            _attachedProgramObjects = new List<Program>();
         }
 
         protected internal virtual IntPtr CreateUnmanagedContext(IContextApi contextApi, IReadOnlyCollection<Device> devices)
@@ -54,7 +58,7 @@ namespace CL.Core.Model
                 throw new ArgumentNullException(nameof(device));
 
             if (!Devices.Contains(device))
-                throw new ArgumentException("Device is not attachted to calling calling context.", nameof(device));
+                throw new ArgumentException("Device is not attached to calling context.", nameof(device));
 
             var commandQueue = new CommandQueue(this, device, enableProfiling, enableOutOfOrderExecutionMode, OpenClApi.CommandQueueApi);
             _attachedCommandQueues.Add(commandQueue);
@@ -66,6 +70,18 @@ namespace CL.Core.Model
         where T : unmanaged
         {
             return new BufferStubConfiguration<T>(OpenClApi, this, b => _attachedMemoryObjects.Add(b));
+        }
+
+        public Program CreateProgram(params FileInfo[] sourceFiles)
+        {
+            //TODO: Provide extension methods for string-sources
+            var sources = new string[sourceFiles.Length];
+            for (var i = 0; i < sourceFiles.Length; i++)
+                sources[i] = File.ReadAllText(sourceFiles[i].FullName);
+
+            var program =  new Program(OpenClApi, this, sources);
+            _attachedProgramObjects.Add(program);
+            return program;
         }
 
         private void ReleaseUnmanagedResources()
@@ -88,6 +104,9 @@ namespace CL.Core.Model
 
                 foreach (var memoryObject in _attachedMemoryObjects)
                     memoryObject.Dispose();
+
+                foreach (var programObject in _attachedProgramObjects)
+                    programObject.Dispose();
             }
 
             ReleaseUnmanagedResources();
