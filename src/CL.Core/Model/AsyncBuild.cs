@@ -4,16 +4,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace CL.Core.Model
 {
-    internal class AsyncBuild
+    internal class AsyncBuild : IDisposable
     {
         private delegate void AsyncBuildCallbackDelegate(IntPtr program, IntPtr userData);
 
         private readonly SemaphoreSlim _semaphore;
         private GCHandle _delegateHandle;
-        private bool _finished;
+
+        internal Task BuildTask { get; }
 
         internal AsyncBuild(IProgramApi programApi, Program program, IReadOnlyCollection<Device> devices)
         {
@@ -31,25 +33,20 @@ namespace CL.Core.Model
 
             var error = programApi.clBuildProgram(program.Id, (uint)devices.Count, devices.Select(d => d.Id).ToArray(), string.Empty, fp, IntPtr.Zero);
             error.ThrowOnError();
-        }
 
-        internal void Monitor()
-        {
-            if (_finished)
-                return;
-
-            lock(this)
-            {
-                _finished = true;
-                _semaphore.Wait();
-                _semaphore.Dispose();
-            }
+            BuildTask = _semaphore.WaitAsync();
         }
 
         private void AsyncBuildCallback(IntPtr program, IntPtr userData)
         {
             _semaphore.Release();
             _delegateHandle.Free();
+        }
+
+        public void Dispose()
+        {
+            BuildTask.Dispose();
+            _semaphore.Dispose();
         }
     }
 }

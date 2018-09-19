@@ -17,6 +17,9 @@ namespace CL.Core.Model
         private readonly IOpenClApi _api;
         private bool _disposed;
 
+        private OpenClErrorCode BuildInfoFuncCurried(IntPtr handle, ProgramBuildInfo name, uint size, byte[] value, out uint paramValueSizeReturned)
+            => _api.ProgramApi.clGetProgramBuildInfo(Id, handle, name, size, value, out paramValueSizeReturned);
+
         internal Program(IOpenClApi api, Context context, string[] sources)
         {
             _api = api ?? throw new ArgumentNullException(nameof(api));
@@ -39,6 +42,7 @@ namespace CL.Core.Model
             BuildAsync(devices).Wait();
         }
 
+        //TODO: Compilation options & optimizations
         public Task BuildAsync(IReadOnlyCollection<Device> devices)
         {
             if (_disposed)
@@ -49,25 +53,26 @@ namespace CL.Core.Model
 
             var build = new AsyncBuild(_api.ProgramApi, this, devices);
 
-            return Task.Factory.StartNew(() => build.Monitor())
-                                .ContinueWith(t => Update(devices));
+            return build.BuildTask.ContinueWith(t =>
+            {
+                build.Dispose();
+                UpdateBuildInfos(devices);
+            });
         }
 
-        private void Update(IEnumerable<Device> devices)
+        private void UpdateBuildInfos(IEnumerable<Device> devices)
         {
-            if (_disposed)
-                throw new ObjectDisposedException(GetType().FullName);
+            //TODO: lock? Concurrent builds would lead to race conditions
 
             Builds.Clear();
 
-            OpenClErrorCode GetInfoFuncCurried(IntPtr handle, ProgramBuildInfo name, uint size, byte[] value, out uint paramValueSizeReturned)
-                => _api.ProgramApi.clGetProgramBuildInfo(Id, handle, name, size, value, out paramValueSizeReturned);
-
             foreach (var device in devices)
             {
-                var status = (BuildStatus)BitConverter.ToUInt32(InfoHelper.GetInfo(GetInfoFuncCurried, device.Id, ProgramBuildInfo.Status), 0);
-                var log = Encoding.Default.GetString(InfoHelper.GetInfo(GetInfoFuncCurried, device.Id, ProgramBuildInfo.Log));
-                var options = Encoding.Default.GetString(InfoHelper.GetInfo(GetInfoFuncCurried, device.Id, ProgramBuildInfo.Options));
+                var status = (BuildStatus)BitConverter.ToUInt32(InfoHelper.GetInfo(BuildInfoFuncCurried, device.Id, ProgramBuildInfo.Status), 0);
+                var log = Encoding.Default.GetString(InfoHelper.GetInfo(BuildInfoFuncCurried, device.Id, ProgramBuildInfo.Log));
+                var options = Encoding.Default.GetString(InfoHelper.GetInfo(BuildInfoFuncCurried, device.Id, ProgramBuildInfo.Options));
+
+                //TODO: Throw on unsuccessful build
 
                 //TODO: Binaries
                 Builds[device] = new BuildInfo(status, log, options, Memory<byte>.Empty);
