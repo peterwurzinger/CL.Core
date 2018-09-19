@@ -10,8 +10,11 @@ namespace CL.Core.API
         OpenClErrorCode clBuildProgram(IntPtr program, uint numDevices, IntPtr[] devices, string options,
             IntPtr pfnNotify, IntPtr userData);
 
-        OpenClErrorCode clGetProgramBuildInfo(IntPtr program, IntPtr device, ProgramBuildInfo paramName,
+        OpenClErrorCode clGetProgramBuildInfo(IntPtr program, IntPtr device, ProgramBuildInfoParameter paramName,
             uint paramValueSize, byte[] paramValue, out uint paramValueSizeReturned);
+
+        OpenClErrorCode clGetProgramInfo(IntPtr program, ProgramInfoParameter paramName, uint paramValueSize,
+            IntPtr paramValue, out uint paramValueSizeReturned);
 
         OpenClErrorCode clRetainProgram(IntPtr program);
 

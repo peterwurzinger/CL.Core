@@ -22,12 +22,21 @@ namespace CL.Core.Fakes
         }
 
         public OpenClErrorCode? clGetProgramBuildInfoReturn { get; set; }
-        public uint? clGetProgramBuildInfoParamvalueSizeReturned { get; set; }
-        public OpenClErrorCode clGetProgramBuildInfo(IntPtr program, IntPtr device, ProgramBuildInfo paramName, uint paramValueSize,
+        public uint? clGetProgramBuildInfoParamValueSizeReturned { get; set; }
+        public OpenClErrorCode clGetProgramBuildInfo(IntPtr program, IntPtr device, ProgramBuildInfoParameter paramName, uint paramValueSize,
             byte[] paramValue, out uint paramValueSizeReturned)
         {
-            paramValueSizeReturned = 4;
+            paramValueSizeReturned = clGetProgramBuildInfoParamValueSizeReturned ?? 4;
             return clGetProgramBuildInfoReturn ?? OpenClErrorCode.Success;
+        }
+
+        public OpenClErrorCode? clGetProgramInfoReturn { get; set; }
+        public uint? clGetProgramInfoParamValueSizeReturned { get; set; }
+        public OpenClErrorCode clGetProgramInfo(IntPtr program, ProgramInfoParameter paramName, uint paramValueSize, IntPtr paramValue,
+            out uint paramValueSizeReturned)
+        {
+            paramValueSizeReturned = clGetProgramInfoParamValueSizeReturned ?? 4;
+            return clGetProgramInfoReturn ?? OpenClErrorCode.Success;
         }
 
 

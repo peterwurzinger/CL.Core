@@ -3,6 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,7 +18,7 @@ namespace CL.Core.Model
         private readonly IOpenClApi _api;
         private bool _disposed;
 
-        private OpenClErrorCode BuildInfoFuncCurried(IntPtr handle, ProgramBuildInfo name, uint size, byte[] value, out uint paramValueSizeReturned)
+        private OpenClErrorCode BuildInfoFuncCurried(IntPtr handle, ProgramBuildInfoParameter name, uint size, byte[] value, out uint paramValueSizeReturned)
             => _api.ProgramApi.clGetProgramBuildInfo(Id, handle, name, size, value, out paramValueSizeReturned);
 
         internal Program(IOpenClApi api, Context context, string[] sources)
@@ -35,6 +36,8 @@ namespace CL.Core.Model
             Id = id;
             Builds = new ConcurrentDictionary<Device, BuildInfo>();
         }
+
+        //TODO: Build overloads for every device associated with program
 
         public void Build(IReadOnlyCollection<Device> devices)
         {
@@ -66,17 +69,56 @@ namespace CL.Core.Model
 
             Builds.Clear();
 
+            var buildErrors = new List<ProgramBuildException>();
+
+            var availableBinaries = GetBinaries(_api.ProgramApi);
+
             foreach (var device in devices)
             {
-                var status = (BuildStatus)BitConverter.ToUInt32(InfoHelper.GetInfo(BuildInfoFuncCurried, device.Id, ProgramBuildInfo.Status), 0);
-                var log = Encoding.Default.GetString(InfoHelper.GetInfo(BuildInfoFuncCurried, device.Id, ProgramBuildInfo.Log));
-                var options = Encoding.Default.GetString(InfoHelper.GetInfo(BuildInfoFuncCurried, device.Id, ProgramBuildInfo.Options));
+                var status = (BuildStatus)BitConverter.ToUInt32(InfoHelper.GetInfo(BuildInfoFuncCurried, device.Id, ProgramBuildInfoParameter.Status), 0);
+                var log = Encoding.Default.GetString(InfoHelper.GetInfo(BuildInfoFuncCurried, device.Id, ProgramBuildInfoParameter.Log));
+                var options = Encoding.Default.GetString(InfoHelper.GetInfo(BuildInfoFuncCurried, device.Id, ProgramBuildInfoParameter.Options));
 
-                //TODO: Throw on unsuccessful build
+                if (status == BuildStatus.InProgress)
+                    throw new InvalidOperationException($"Call to '{nameof(UpdateBuildInfos)}' while build is still in progress");
 
-                //TODO: Binaries
-                Builds[device] = new BuildInfo(status, log, options, Memory<byte>.Empty);
+                if (status == BuildStatus.Error)
+                    buildErrors.Add(new ProgramBuildException(this, device, log));
+
+
+                Builds[device] = new BuildInfo(status, log, options, new Memory<byte>(availableBinaries[device.Id]));
             }
+
+            if (buildErrors.Any())
+                throw new AggregateException("Error while building program.", buildErrors);
+        }
+
+        private unsafe Dictionary<IntPtr, byte[]> GetBinaries(IProgramApi api)
+        {
+            var infoHelper = new InfoHelper<ProgramInfoParameter>(api.clGetProgramInfo);
+
+            var sortedDevices = infoHelper.GetValues<IntPtr>(Id, ProgramInfoParameter.Devices);
+            var binarySizes = infoHelper.GetValues<long>(Id, ProgramInfoParameter.BinarySizes).ToArray();
+
+            var memoryPointers = new IntPtr[binarySizes.Length];
+            for (var i = 0; i < binarySizes.Length; i++)
+                memoryPointers[i] = Marshal.AllocHGlobal((int)binarySizes[i]);
+
+            fixed (void* handle = memoryPointers)
+            {
+                var error = api.clGetProgramInfo(Id, ProgramInfoParameter.Binaries, (uint)(sizeof(IntPtr) * binarySizes.Length), new IntPtr(handle), out _);
+                error.ThrowOnError();
+            }
+
+            var binaries = new Dictionary<IntPtr, byte[]>();
+            for (var i = 0; i < memoryPointers.Length; i++)
+            {
+
+                binaries[sortedDevices[i]] = new ReadOnlySpan<byte>(memoryPointers[i].ToPointer(), (int)binarySizes[i]).ToArray();
+                Marshal.FreeHGlobal(memoryPointers[i]);
+            }
+
+            return binaries;
         }
 
         private void ReleaseUnmanagedResources()
