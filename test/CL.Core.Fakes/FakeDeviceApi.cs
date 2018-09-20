@@ -22,7 +22,7 @@ namespace CL.Core.Fakes
 
         public OpenClErrorCode? clGetDeviceInfoResult { get; set; }
         public uint clGetDeviceInfoParamValueSizeRet { get; set; }
-        public OpenClErrorCode clGetDeviceInfo(IntPtr device, DeviceInfoParameter parameter, uint pValueSize, byte[] paramValue,
+        public OpenClErrorCode clGetDeviceInfo(IntPtr device, DeviceInfoParameter parameter, uint pValueSize, IntPtr paramValue,
             out uint paramValueSizeRet)
         {
             paramValueSizeRet = clGetDeviceInfoParamValueSizeRet;

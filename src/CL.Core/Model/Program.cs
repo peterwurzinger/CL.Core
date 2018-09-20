@@ -75,6 +75,7 @@ namespace CL.Core.Model
 
             foreach (var device in devices)
             {
+                
                 var status = (BuildStatus)BitConverter.ToUInt32(InfoHelper.GetInfo(BuildInfoFuncCurried, device.Id, ProgramBuildInfoParameter.Status), 0);
                 var log = Encoding.Default.GetString(InfoHelper.GetInfo(BuildInfoFuncCurried, device.Id, ProgramBuildInfoParameter.Log));
                 var options = Encoding.Default.GetString(InfoHelper.GetInfo(BuildInfoFuncCurried, device.Id, ProgramBuildInfoParameter.Options));
@@ -95,10 +96,10 @@ namespace CL.Core.Model
 
         private unsafe Dictionary<IntPtr, byte[]> GetBinaries(IProgramApi api)
         {
-            var infoHelper = new InfoHelper<ProgramInfoParameter>(api.clGetProgramInfo);
+            var infoHelper = new InfoHelper<ProgramInfoParameter>(this, api.clGetProgramInfo);
 
-            var sortedDevices = infoHelper.GetValues<IntPtr>(Id, ProgramInfoParameter.Devices);
-            var binarySizes = infoHelper.GetValues<long>(Id, ProgramInfoParameter.BinarySizes).ToArray();
+            var sortedDevices = infoHelper.GetValues<IntPtr>(ProgramInfoParameter.Devices);
+            var binarySizes = infoHelper.GetValues<long>(ProgramInfoParameter.BinarySizes).ToArray();
 
             var memoryPointers = new IntPtr[binarySizes.Length];
             for (var i = 0; i < binarySizes.Length; i++)

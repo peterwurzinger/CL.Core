@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Text;
+using CL.Core.Model;
 
 namespace CL.Core.API
 {
@@ -27,36 +29,45 @@ namespace CL.Core.API
         }
     }
 
-    public class InfoHelper<TParameter>
+    internal class InfoHelper<TParameter>
     where TParameter : Enum
     {
         public delegate OpenClErrorCode GetInfoFunc(IntPtr handle, TParameter parameterName, uint valueSize,
             IntPtr paramValue, out uint parameterValueSizeReturn);
 
+
+        private readonly IHasId _entity;
         private readonly GetInfoFunc _infoFunc;
 
-        public InfoHelper(GetInfoFunc infoFunc)
+        internal InfoHelper(IHasId entity, GetInfoFunc infoFunc)
         {
+            _entity = entity ?? throw new ArgumentNullException(nameof(entity));
             _infoFunc = infoFunc ?? throw new ArgumentNullException(nameof(infoFunc));
         }
 
-        public TValue GetValue<TValue>(IntPtr handle, TParameter parameterName)
+        public TValue GetValue<TValue>(TParameter parameterName)
             where TValue : struct
         {
-            var bytes = GetBytes(handle, parameterName);
+            var bytes = GetBytes(parameterName);
             return MemoryMarshal.Read<TValue>(bytes);
         }
 
-        public ReadOnlySpan<TValue> GetValues<TValue>(IntPtr handle, TParameter parameterName)
+        public ReadOnlySpan<TValue> GetValues<TValue>(TParameter parameterName)
             where TValue : struct
         {
-            var bytes = GetBytes(handle, parameterName);
+            var bytes = GetBytes(parameterName);
             return MemoryMarshal.Cast<byte, TValue>(bytes);
         }
 
-        private unsafe ReadOnlySpan<byte> GetBytes(IntPtr handle, TParameter parameterName)
+        public string GetStringValue(TParameter parameterName, Encoding encoding)
         {
-            var error = _infoFunc(handle, parameterName, 0, IntPtr.Zero, out var paramSize);
+            var bytes = GetBytes(parameterName);
+            return encoding.GetString(bytes.ToArray());
+        }
+
+        private unsafe ReadOnlySpan<byte> GetBytes(TParameter parameterName)
+        {
+            var error = _infoFunc(_entity.Id, parameterName, 0, IntPtr.Zero, out var paramSize);
             error.ThrowOnError();
 
 
@@ -65,7 +76,7 @@ namespace CL.Core.API
 
             try
             {
-                error = _infoFunc(handle, parameterName, paramSize, new IntPtr(memoryHandle.Pointer), out _);
+                error = _infoFunc(_entity.Id, parameterName, paramSize, new IntPtr(memoryHandle.Pointer), out _);
                 error.ThrowOnError();
 
                 return memory.Span;
