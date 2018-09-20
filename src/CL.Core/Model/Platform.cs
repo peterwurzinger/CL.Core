@@ -1,14 +1,15 @@
-﻿using System;
+﻿using CL.Core.API;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using CL.Core.API;
 
 namespace CL.Core.Model
 {
     public class Platform : IHasId, IEquatable<Platform>
     {
         private readonly IOpenClApi _openClApi;
+        private readonly InfoHelper<PlatformInfoParameter> _platformInfoHelper;
         public IntPtr Id { get; }
         public string Name { get; }
         public string Vendor { get; }
@@ -22,12 +23,13 @@ namespace CL.Core.Model
 
             //TODO: Check if Id exists
             Id = platformId;
+            _platformInfoHelper = new InfoHelper<PlatformInfoParameter>(this, _openClApi.PlatformApi.clGetPlatformInfo);
+            var encoding = Encoding.Default;
 
-            Name = Encoding.Default.GetString(InfoHelper.GetInfo(_openClApi.PlatformApi.clGetPlatformInfo, platformId, PlatformInfoParameter.Name));
-            Vendor = Encoding.Default.GetString(InfoHelper.GetInfo(_openClApi.PlatformApi.clGetPlatformInfo, platformId, PlatformInfoParameter.Vendor));
-            Profile = Encoding.Default.GetString(InfoHelper.GetInfo(_openClApi.PlatformApi.clGetPlatformInfo, platformId, PlatformInfoParameter.Profile));
-            Extensions = Encoding.Default.GetString(InfoHelper.GetInfo(_openClApi.PlatformApi.clGetPlatformInfo, platformId, PlatformInfoParameter.Extensions)).Split(' ');
-
+            Name = _platformInfoHelper.GetStringValue(PlatformInfoParameter.Name, encoding);
+            Vendor = _platformInfoHelper.GetStringValue(PlatformInfoParameter.Vendor, encoding);
+            Profile = _platformInfoHelper.GetStringValue(PlatformInfoParameter.Profile, encoding);
+            Extensions = _platformInfoHelper.GetStringValue(PlatformInfoParameter.Extensions, encoding).Split(' ');
 
             var errorCode = _openClApi.DeviceApi.clGetDeviceIDs(platformId, DeviceType.All, 0, null, out var numDevices);
             errorCode.ThrowOnError();
@@ -50,7 +52,7 @@ namespace CL.Core.Model
         {
             if (obj is null) return false;
             if (ReferenceEquals(this, obj)) return true;
-            return obj.GetType() == GetType() && Equals((Platform) obj);
+            return obj.GetType() == GetType() && Equals((Platform)obj);
         }
 
         public override int GetHashCode()

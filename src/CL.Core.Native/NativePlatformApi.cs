@@ -10,9 +10,9 @@ namespace CL.Core.Native
         public static extern OpenClErrorCode clGetPlatformIDs([MarshalAs(UnmanagedType.U4)] uint numEntries, [MarshalAs(UnmanagedType.LPArray)] IntPtr[] platforms, [MarshalAs(UnmanagedType.U4)] out uint numPlatforms);
 
         [DllImport(Constants.DLL, EntryPoint = "clGetPlatformInfo")]
-        public static extern OpenClErrorCode clGetPlatformInfo(IntPtr platform, PlatformInfoParameter parameter, uint pValueSize, byte[] parameterValue, out uint parameterValueSizeReturned);
+        public static extern OpenClErrorCode clGetPlatformInfo(IntPtr platform, PlatformInfoParameter parameter, uint pValueSize, IntPtr paramValue, out uint parameterValueSizeReturned);
 
-        OpenClErrorCode IPlatformApi.clGetPlatformInfo(IntPtr platform, PlatformInfoParameter parameter, uint pValueSize, byte[] parameterValue,
+        OpenClErrorCode IPlatformApi.clGetPlatformInfo(IntPtr platform, PlatformInfoParameter parameter, uint pValueSize, IntPtr parameterValue,
             out uint parameterValueSizeReturned)
         {
             return clGetPlatformInfo(platform, parameter, pValueSize, parameterValue, out parameterValueSizeReturned);

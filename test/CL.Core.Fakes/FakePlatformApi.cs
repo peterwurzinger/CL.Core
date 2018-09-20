@@ -15,7 +15,7 @@ namespace CL.Core.Fakes
 
         public OpenClErrorCode? clGetPlatformInfoResult { get; set; }
         public uint clGetPlatformInfoParameterValueSizeReturned { get; set; }
-        public OpenClErrorCode clGetPlatformInfo(IntPtr platform, PlatformInfoParameter parameters, uint pValueSize, byte[] parameterValue,
+        public OpenClErrorCode clGetPlatformInfo(IntPtr platform, PlatformInfoParameter parameters, uint pValueSize, IntPtr parameterValue,
             out uint parameterValueSizeReturned)
         {
             parameterValueSizeReturned = clGetPlatformInfoParameterValueSizeReturned;
