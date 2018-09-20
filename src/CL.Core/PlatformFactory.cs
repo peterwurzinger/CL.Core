@@ -5,11 +5,11 @@ using CL.Core.Model;
 
 namespace CL.Core
 {
-    public class PatformFactory
+    public class PlatformFactory
     {
         private readonly IOpenClApi _openClApi;
 
-        public PatformFactory(IOpenClApi openClApi)
+        public PlatformFactory(IOpenClApi openClApi)
         {
             _openClApi = openClApi ?? throw new ArgumentNullException(nameof(openClApi));
         }

@@ -11,7 +11,7 @@ namespace CL.Core.Samples.NetCore
         {
             var api = new NativeOpenClApi();
 
-            var factory = new PatformFactory(api);
+            var factory = new PlatformFactory(api);
             var platforms = factory.GetPlatforms();
             foreach (var platform in platforms)
             {
