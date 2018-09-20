@@ -24,7 +24,7 @@ namespace CL.Core.Fakes
         public OpenClErrorCode? clGetProgramBuildInfoReturn { get; set; }
         public uint? clGetProgramBuildInfoParamValueSizeReturned { get; set; }
         public OpenClErrorCode clGetProgramBuildInfo(IntPtr program, IntPtr device, ProgramBuildInfoParameter paramName, uint paramValueSize,
-            byte[] paramValue, out uint paramValueSizeReturned)
+            IntPtr paramValue, out uint paramValueSizeReturned)
         {
             paramValueSizeReturned = clGetProgramBuildInfoParamValueSizeReturned ?? 4;
             return clGetProgramBuildInfoReturn ?? OpenClErrorCode.Success;

@@ -29,7 +29,7 @@ namespace CL.Core.Native
         [DllImport(Constants.DLL, EntryPoint = "clGetProgramBuildInfo")]
         public static extern OpenClErrorCode clGetProgramBuildInfo(IntPtr program, IntPtr device,
             ProgramBuildInfoParameter paramName, uint paramValueSize,
-            byte[] paramValue, out uint paramValueSizeReturned);
+            IntPtr paramValue, out uint paramValueSizeReturned);
 
         IntPtr IProgramApi.clCreateProgramWithSource(IntPtr context, uint count, string[] strings, uint[] lengths,
             out OpenClErrorCode errorCodeRet)
@@ -60,7 +60,7 @@ namespace CL.Core.Native
         }
 
         OpenClErrorCode IProgramApi.clGetProgramBuildInfo(IntPtr program, IntPtr device, ProgramBuildInfoParameter paramName, uint paramValueSize,
-            byte[] paramValue, out uint paramValueSizeReturned)
+            IntPtr paramValue, out uint paramValueSizeReturned)
         {
             return clGetProgramBuildInfo(program, device, paramName, paramValueSize, paramValue,
                 out paramValueSizeReturned);

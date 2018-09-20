@@ -11,7 +11,7 @@ namespace CL.Core.API
             IntPtr pfnNotify, IntPtr userData);
 
         OpenClErrorCode clGetProgramBuildInfo(IntPtr program, IntPtr device, ProgramBuildInfoParameter paramName,
-            uint paramValueSize, byte[] paramValue, out uint paramValueSizeReturned);
+            uint paramValueSize, IntPtr paramValue, out uint paramValueSizeReturned);
 
         OpenClErrorCode clGetProgramInfo(IntPtr program, ProgramInfoParameter paramName, uint paramValueSize,
             IntPtr paramValue, out uint paramValueSizeReturned);

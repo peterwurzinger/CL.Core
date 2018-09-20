@@ -11,15 +11,16 @@ namespace CL.Core.Model
 {
     public class Program : IHasId, IDisposable
     {
+        private readonly IOpenClApi _api;
+        private readonly InfoHelper<ProgramInfoParameter> _programInfoHelper;
+        private bool _disposed;
+
         public IntPtr Id { get; }
         public Context Context { get; }
         public IDictionary<Device, BuildInfo> Builds { get; }
 
-        private readonly IOpenClApi _api;
-        private bool _disposed;
-
-        private OpenClErrorCode BuildInfoFuncCurried(IntPtr handle, ProgramBuildInfoParameter name, uint size, byte[] value, out uint paramValueSizeReturned)
-            => _api.ProgramApi.clGetProgramBuildInfo(Id, handle, name, size, value, out paramValueSizeReturned);
+        private OpenClErrorCode BuildInfoFuncCurried(IntPtr deviceHandle, ProgramBuildInfoParameter name, uint size, IntPtr paramValue, out uint paramValueSizeReturned)
+            => _api.ProgramApi.clGetProgramBuildInfo(Id, deviceHandle, name, size, paramValue, out paramValueSizeReturned);
 
         internal Program(IOpenClApi api, Context context, string[] sources)
         {
@@ -34,6 +35,8 @@ namespace CL.Core.Model
             error.ThrowOnError();
 
             Id = id;
+            _programInfoHelper = new InfoHelper<ProgramInfoParameter>(this, _api.ProgramApi.clGetProgramInfo);
+
             Builds = new ConcurrentDictionary<Device, BuildInfo>();
         }
 
@@ -71,14 +74,15 @@ namespace CL.Core.Model
 
             var buildErrors = new List<ProgramBuildException>();
 
-            var availableBinaries = GetBinaries(_api.ProgramApi);
+            var availableBinaries = GetBinaries();
 
             foreach (var device in devices)
             {
-                
-                var status = (BuildStatus)BitConverter.ToUInt32(InfoHelper.GetInfo(BuildInfoFuncCurried, device.Id, ProgramBuildInfoParameter.Status), 0);
-                var log = Encoding.Default.GetString(InfoHelper.GetInfo(BuildInfoFuncCurried, device.Id, ProgramBuildInfoParameter.Log));
-                var options = Encoding.Default.GetString(InfoHelper.GetInfo(BuildInfoFuncCurried, device.Id, ProgramBuildInfoParameter.Options));
+                var buildInfoHelper = new InfoHelper<ProgramBuildInfoParameter>(device, BuildInfoFuncCurried);
+                var encoding = Encoding.Default;
+                var status = buildInfoHelper.GetValue<BuildStatus>(ProgramBuildInfoParameter.Status);
+                var log = buildInfoHelper.GetStringValue(ProgramBuildInfoParameter.Log, encoding);
+                var options = buildInfoHelper.GetStringValue(ProgramBuildInfoParameter.Options, encoding);
 
                 if (status == BuildStatus.InProgress)
                     throw new InvalidOperationException($"Call to '{nameof(UpdateBuildInfos)}' while build is still in progress");
@@ -94,12 +98,10 @@ namespace CL.Core.Model
                 throw new AggregateException("Error while building program.", buildErrors);
         }
 
-        private unsafe Dictionary<IntPtr, byte[]> GetBinaries(IProgramApi api)
+        private unsafe Dictionary<IntPtr, byte[]> GetBinaries()
         {
-            var infoHelper = new InfoHelper<ProgramInfoParameter>(this, api.clGetProgramInfo);
-
-            var sortedDevices = infoHelper.GetValues<IntPtr>(ProgramInfoParameter.Devices);
-            var binarySizes = infoHelper.GetValues<long>(ProgramInfoParameter.BinarySizes).ToArray();
+            var sortedDevices = _programInfoHelper.GetValues<IntPtr>(ProgramInfoParameter.Devices);
+            var binarySizes = _programInfoHelper.GetValues<long>(ProgramInfoParameter.BinarySizes).ToArray();
 
             var memoryPointers = new IntPtr[binarySizes.Length];
             for (var i = 0; i < binarySizes.Length; i++)
@@ -107,14 +109,13 @@ namespace CL.Core.Model
 
             fixed (void* handle = memoryPointers)
             {
-                var error = api.clGetProgramInfo(Id, ProgramInfoParameter.Binaries, (uint)(sizeof(IntPtr) * binarySizes.Length), new IntPtr(handle), out _);
+                var error = _api.ProgramApi.clGetProgramInfo(Id, ProgramInfoParameter.Binaries, (uint)(sizeof(IntPtr) * binarySizes.Length), new IntPtr(handle), out _);
                 error.ThrowOnError();
             }
 
             var binaries = new Dictionary<IntPtr, byte[]>();
             for (var i = 0; i < memoryPointers.Length; i++)
             {
-
                 binaries[sortedDevices[i]] = new ReadOnlySpan<byte>(memoryPointers[i].ToPointer(), (int)binarySizes[i]).ToArray();
                 Marshal.FreeHGlobal(memoryPointers[i]);
             }
