@@ -16,7 +16,7 @@ namespace CL.Core.Samples.NetCore
             foreach (var platform in platforms)
             {
                 var ctx = new Context(api, platform.Devices);
-
+                ctx.Notification += CtxOnNotification;
                 var file = new FileInfo("ExampleProgram.cl");
                 var program = ctx.CreateProgram(file);
                 program.BuildAsync(ctx.Devices).Wait();
@@ -33,6 +33,13 @@ namespace CL.Core.Samples.NetCore
                 ctx.Dispose();
                 Console.WriteLine($"{platform.Id} - {platform.Vendor}");
             }
+        }
+
+        private static void CtxOnNotification(object sender, ContextNotificationEventArgs e)
+        {
+            var ctx = (Context)sender;
+            Console.WriteLine($"ERROR: {ctx.Id} - {e.Message}");
+
         }
     }
 }

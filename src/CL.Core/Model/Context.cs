@@ -3,24 +3,29 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace CL.Core.Model
 {
     public class Context : IHasId, IDisposable
     {
+        public event EventHandler<ContextNotificationEventArgs> Notification;
+
         public IntPtr Id { get; }
         public IReadOnlyCollection<Device> Devices { get; }
 
-        //TODO: Context-Properties?
+        //TODO: Context-Properties
 
         protected IOpenClApi OpenClApi { get; }
+
         private readonly IList<CommandQueue> _attachedCommandQueues;
         private readonly IList<MemoryObject> _attachedMemoryObjects;
         private readonly IList<Program> _attachedProgramObjects;
 
+        private GCHandle _delegateHandle;
         private bool _disposed;
 
-        //TODO: Make method of Platform, since contexts spanning multiple platforms is not supported anyway 
+        //TODO: Extract as factory-method in platform-class, since contexts spanning multiple platforms is not supported anyway 
         public Context(IOpenClApi openClApi, IReadOnlyCollection<Device> devices)
         {
             OpenClApi = openClApi ?? throw new ArgumentNullException(nameof(openClApi));
@@ -33,20 +38,32 @@ namespace CL.Core.Model
 
             Devices = devices;
 
-            //TODO: Elaborate on this
-            // ReSharper disable once VirtualMemberCallInConstructor
-            Id = CreateUnmanagedContext(openClApi.ContextApi, devices);
+            _delegateHandle = GCHandle.Alloc((ContextErrorDelegate)NotificationCallbackProxy);
+            var fp = Marshal.GetFunctionPointerForDelegate((ContextErrorDelegate)NotificationCallbackProxy);
+
+            var id = OpenClApi.ContextApi.clCreateContext(IntPtr.Zero, (uint)devices.Count, devices.Select(device => device.Id).ToArray(), fp, IntPtr.Zero, out var error);
+            error.ThrowOnError();
+            Id = id;
 
             _attachedCommandQueues = new List<CommandQueue>();
             _attachedMemoryObjects = new List<MemoryObject>();
             _attachedProgramObjects = new List<Program>();
         }
 
-        protected internal virtual IntPtr CreateUnmanagedContext(IContextApi contextApi, IReadOnlyCollection<Device> devices)
+        private void NotificationCallbackProxy(string error, IntPtr privateInfo, int cb, IntPtr userData)
         {
-            var id = contextApi.clCreateContext(IntPtr.Zero, (uint)devices.Count, devices.Select(device => device.Id).ToArray(), IntPtr.Zero, IntPtr.Zero, out var error);
-            error.ThrowOnError();
-            return id;
+            unsafe
+            {
+                var span = new ReadOnlySpan<byte>(privateInfo.ToPointer(), cb);
+                var mem = new ReadOnlyMemory<byte>(span.ToArray());
+
+                var handler = Notification;
+                if (handler != null)
+                {
+                    var args = new ContextNotificationEventArgs(error, mem);
+                    handler(this, args);
+                }
+            }
         }
 
         public CommandQueue CreateCommandQueue(Device device, bool enableProfiling, bool enableOutOfOrderExecutionMode)
@@ -79,7 +96,7 @@ namespace CL.Core.Model
             for (var i = 0; i < sourceFiles.Length; i++)
                 sources[i] = File.ReadAllText(sourceFiles[i].FullName);
 
-            var program =  new Program(OpenClApi, this, sources);
+            var program = new Program(OpenClApi, this, sources);
             _attachedProgramObjects.Add(program);
             return program;
         }
@@ -99,6 +116,8 @@ namespace CL.Core.Model
 
             if (disposing)
             {
+                _delegateHandle.Free();
+
                 foreach (var commandQueue in _attachedCommandQueues)
                     commandQueue.Dispose();
 
