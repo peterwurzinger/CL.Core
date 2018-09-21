@@ -15,7 +15,7 @@ namespace CL.Core.Native
             ProgramInfoParameter paramName, uint paramValueSize,
             IntPtr paramValue, out uint paramValueSizeReturned);
 
-        [DllImport(Constants.DLL, EntryPoint = "clBuildProgram")]
+        [DllImport(Constants.DLL, EntryPoint = "clBuildProgram", CharSet = CharSet.Unicode)]
         public static extern OpenClErrorCode clBuildProgram(IntPtr program, uint numDevices, IntPtr[] devices, string options,
             IntPtr pfnNotify, IntPtr userData);
 
