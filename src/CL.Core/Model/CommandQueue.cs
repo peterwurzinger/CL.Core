@@ -5,11 +5,12 @@ namespace CL.Core.Model
 {
     public class CommandQueue : IHasId, IDisposable, IEquatable<CommandQueue>
     {
-        private readonly ICommandQueueApi _commandQueueApi;
-        private bool _disposed;
         public IntPtr Id { get; }
         public Context Context { get; }
         public Device Device { get; }
+
+        private readonly ICommandQueueApi _commandQueueApi;
+        private bool _disposed;
 
         internal CommandQueue(Context context, Device device, bool enableProfiling, bool enableOutOfOrderExcecutionMode, ICommandQueueApi commandQueueApi)
         {
@@ -31,25 +32,29 @@ namespace CL.Core.Model
 
         public void Dispose()
         {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
             if (_disposed)
                 return;
 
             ReleaseUnmanagedResources();
-            GC.SuppressFinalize(this);
-
             _disposed = true;
         }
 
         ~CommandQueue()
         {
-            if (_commandQueueApi == null || Id == IntPtr.Zero)
-                return;
-
-            ReleaseUnmanagedResources();
+            Dispose(false);
         }
 
         private void ReleaseUnmanagedResources()
         {
+            if (_commandQueueApi == null || Id == IntPtr.Zero)
+                return;
+
             var error = _commandQueueApi.clReleaseCommandQueue(Id);
             error.ThrowOnError();
         }

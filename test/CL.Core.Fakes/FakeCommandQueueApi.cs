@@ -14,9 +14,9 @@ namespace CL.Core.Fakes
         public IntPtr? clCreateCommandQueueResult { get; set; }
         public OpenClErrorCode? clCreateCommandQueueErrorCode { get; set; }
         public IntPtr clCreateCommandQueue(IntPtr context, IntPtr device, CommandQueueProperties properties,
-            out OpenClErrorCode error)
+            out OpenClErrorCode errorCode)
         {
-            error = clCreateCommandQueueErrorCode ?? OpenClErrorCode.Success;
+            errorCode = clCreateCommandQueueErrorCode ?? OpenClErrorCode.Success;
             return clCreateCommandQueueResult ?? IntPtr.Zero;
         }
 

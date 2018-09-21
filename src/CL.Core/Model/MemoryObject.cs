@@ -8,7 +8,7 @@ namespace CL.Core.Model
         public IntPtr Id { get; protected set; }
         public Context Context { get; }
 
-        protected readonly IOpenClApi Api;
+        protected IOpenClApi Api { get; }
         private bool _disposed;
 
         protected MemoryObject(IOpenClApi api, Context context)

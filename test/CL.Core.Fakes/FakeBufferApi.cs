@@ -25,7 +25,7 @@ namespace CL.Core.Fakes
         public OpenClErrorCode? clEnqueueReadBufferResult { get; set; }
         public IntPtr? clEnqueueReadBufferEvent { get; set; }
         public OpenClErrorCode clEnqueueReadBuffer(IntPtr commandQueue, IntPtr buffer, bool blockingRead, uint offset, uint cb,
-            IntPtr ptr, uint numEventsInWaitList, IntPtr[] eventWaitList, out IntPtr @event)
+            IntPtr mem, uint numEventsInWaitList, IntPtr[] eventWaitList, out IntPtr @event)
         {
             @event = clEnqueueReadBufferEvent ?? IntPtr.Zero;
             return clEnqueueReadBufferResult ?? OpenClErrorCode.Success;
@@ -34,9 +34,9 @@ namespace CL.Core.Fakes
         public OpenClErrorCode? clEnqueueWriteBufferResult { get; set; }
         public IntPtr? clEnqueueWriteBufferEvent { get; set; }
         public OpenClErrorCode clEnqueueWriteBuffer(IntPtr commandQueue, IntPtr buffer, bool blockingWrite, uint offset, uint cb,
-            IntPtr ptr, uint numEventsInWaitList, IntPtr[] eventWaitList, out IntPtr @event)
+            IntPtr mem, uint numEventsInWaitList, IntPtr[] eventWaitList, out IntPtr evt)
         {
-            @event = clEnqueueWriteBufferEvent ?? IntPtr.Zero;
+            evt = clEnqueueWriteBufferEvent ?? IntPtr.Zero;
             return clEnqueueWriteBufferResult ?? OpenClErrorCode.Success;
         }
 

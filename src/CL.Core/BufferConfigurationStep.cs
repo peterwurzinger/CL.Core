@@ -7,9 +7,9 @@ namespace CL.Core
     public abstract class BufferConfigurationStep<T>
         where T : unmanaged
     {
-        protected readonly IOpenClApi Api;
-        protected readonly Context Context;
-        protected readonly Action<Buffer<T>> BufferCreatedCallback;
+        protected IOpenClApi Api { get; }
+        protected Context Context { get; }
+        protected Action<Buffer<T>> BufferCreatedCallback { get; }
 
         protected internal BufferConfigurationStep(IOpenClApi api, Context context, Action<Buffer<T>> bufferCreatedCallback)
         {

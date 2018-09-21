@@ -13,7 +13,7 @@ namespace CL.Core.Model
 
         //TODO: Context-Properties?
 
-        protected readonly IOpenClApi OpenClApi;
+        protected IOpenClApi OpenClApi { get; }
         private readonly IList<CommandQueue> _attachedCommandQueues;
         private readonly IList<MemoryObject> _attachedMemoryObjects;
         private readonly IList<Program> _attachedProgramObjects;

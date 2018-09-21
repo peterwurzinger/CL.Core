@@ -25,5 +25,13 @@ namespace CL.Core.API
         {
 
         }
+
+        public ClCoreException()
+        {
+        }
+
+        public ClCoreException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
     }
 }

@@ -63,7 +63,7 @@ namespace CL.Core.Model
             {
                 build.Dispose();
                 UpdateBuildInfos(devices);
-            });
+            }, TaskScheduler.Current);
         }
 
         private void UpdateBuildInfos(IEnumerable<Device> devices)
@@ -129,21 +129,24 @@ namespace CL.Core.Model
                 _api?.ProgramApi?.clReleaseProgram(Id);
         }
 
-        private void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
+            if (_disposed)
+                return;
+
             ReleaseUnmanagedResources();
             if (disposing)
             {
                 //TODO: Release kernels
                 Builds.Clear();
             }
+            _disposed = true;
         }
 
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
-            _disposed = true;
         }
 
         ~Program()

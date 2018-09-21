@@ -1,5 +1,4 @@
 ﻿using CL.Core.API;
-using System;
 
 namespace CL.Core.Model
 {
@@ -8,16 +7,6 @@ namespace CL.Core.Model
         protected BufferBase(IOpenClApi api, Context context)
             : base(api, context)
         {
-        }
-
-        public void Write()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Read()
-        {
-            throw new NotImplementedException();
         }
     }
 }

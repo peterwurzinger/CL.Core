@@ -1,13 +1,13 @@
-﻿using System;
-using CL.Core.API;
+﻿using CL.Core.API;
 using CL.Core.Model;
+using System;
 
 namespace CL.Core
 {
     public abstract class BufferMemoryBehaviorConfiguration<T> : BufferConfigurationStep<T>
         where T : unmanaged
     {
-        protected MemoryFlags Flags;
+        protected MemoryFlags Flags { get; set; }
 
         internal BufferMemoryBehaviorConfiguration(IOpenClApi api, Context context, Action<Buffer<T>> bufferCreatedCallback, MemoryFlags flags)
             : base(api, context, bufferCreatedCallback)

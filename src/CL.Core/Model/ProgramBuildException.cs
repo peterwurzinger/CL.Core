@@ -18,5 +18,17 @@ namespace CL.Core.Model
             DeviceHandle = device.Id;
             Log = log;
         }
+
+        public ProgramBuildException()
+        {
+        }
+
+        public ProgramBuildException(string message) : base(message)
+        {
+        }
+
+        public ProgramBuildException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
     }
 }

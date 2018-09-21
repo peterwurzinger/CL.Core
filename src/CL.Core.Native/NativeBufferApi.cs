@@ -18,12 +18,12 @@ namespace CL.Core.Native
         [DllImport(Constants.DLL, EntryPoint = "clEnqueueReadBuffer")]
         public static extern OpenClErrorCode clEnqueueReadBuffer(IntPtr commandQueue, IntPtr buffer, bool blockingRead,
             uint offset, uint cb,
-            IntPtr ptr, uint numEventsInWaitList, IntPtr[] eventWaitList, out IntPtr @event);
+            IntPtr mem, uint numEventsInWaitList, IntPtr[] eventWaitList, out IntPtr @event);
 
         [DllImport(Constants.DLL, EntryPoint = "clEnqueueWriteBuffer")]
         public static extern OpenClErrorCode clEnqueueWriteBuffer(IntPtr commandQueue, IntPtr buffer,
             bool blockingWrite, uint offset, uint cb,
-            IntPtr ptr, uint numEventsInWaitList, IntPtr[] eventWaitList, out IntPtr @event);
+            IntPtr mem, uint numEventsInWaitList, IntPtr[] eventWaitList, out IntPtr evt);
 
         [DllImport(Constants.DLL, EntryPoint = "clReleaseMemObject")]
         public static extern OpenClErrorCode clReleaseMemObject(IntPtr memobj);
@@ -36,15 +36,15 @@ namespace CL.Core.Native
         }
 
         OpenClErrorCode IBufferApi.clEnqueueReadBuffer(IntPtr commandQueue, IntPtr buffer, bool blockingRead, uint offset, uint cb,
-            IntPtr ptr, uint numEventsInWaitList, IntPtr[] eventWaitList, out IntPtr @event)
+            IntPtr mem, uint numEventsInWaitList, IntPtr[] eventWaitList, out IntPtr @event)
         {
-            return clEnqueueReadBuffer(commandQueue, buffer, blockingRead, offset, cb, ptr, numEventsInWaitList, eventWaitList, out @event);
+            return clEnqueueReadBuffer(commandQueue, buffer, blockingRead, offset, cb, mem, numEventsInWaitList, eventWaitList, out @event);
         }
 
         OpenClErrorCode IBufferApi.clEnqueueWriteBuffer(IntPtr commandQueue, IntPtr buffer, bool blockingWrite, uint offset, uint cb,
-            IntPtr ptr, uint numEventsInWaitList, IntPtr[] eventWaitList, out IntPtr @event)
+            IntPtr mem, uint numEventsInWaitList, IntPtr[] eventWaitList, out IntPtr evt)
         {
-            return clEnqueueWriteBuffer(commandQueue, buffer, blockingWrite, offset, cb, ptr, numEventsInWaitList, eventWaitList, out @event);
+            return clEnqueueWriteBuffer(commandQueue, buffer, blockingWrite, offset, cb, mem, numEventsInWaitList, eventWaitList, out evt);
         }
 
         IntPtr IBufferApi.clCreateBuffer(IntPtr context, MemoryFlags flags, uint size, IntPtr hostPtr, out OpenClErrorCode errorCode)

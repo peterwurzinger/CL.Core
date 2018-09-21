@@ -8,6 +8,7 @@ namespace CL.Core.Model
     {
         private readonly IDeviceApi _deviceApi;
         private readonly InfoHelper<DeviceInfoParameter> _deviceInfoHelper;
+        private bool _disposed;
 
         #region Properties
 
@@ -46,7 +47,7 @@ namespace CL.Core.Model
         /// <summary>
         /// Maximum number of work-items that can be specified in each dimension of the work-group to clEnqueueNDRangeKernel. Returns n size_t entries, where n is the value returned by the query for CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS.The minimum value is (1, 1, 1).
         /// </summary>
-        public ulong[] MaxWorkItemSizes { get; }
+        public ReadOnlyMemory<ulong> MaxWorkItemSizes { get; }
 
         /// <summary>
         /// Maximum number of work-items in a work-group executing a kernel using the data parallel execution model. The minimum value is 1.
@@ -127,13 +128,23 @@ namespace CL.Core.Model
 
         public void Dispose()
         {
-            ReleaseUnmanagedResources();
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
 
         ~Device()
         {
+            Dispose(false);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+            
             ReleaseUnmanagedResources();
+
+            _disposed = true;
         }
 
         public bool Equals(Device other)

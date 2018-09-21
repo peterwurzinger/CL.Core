@@ -14,7 +14,7 @@ namespace CL.Core.Model
 
         private readonly SemaphoreSlim _semaphore;
         private GCHandle _delegateHandle;
-
+        private bool _disposed;
         internal Task BuildTask { get; }
 
         internal AsyncBuild(IProgramApi programApi, Program program, IReadOnlyCollection<Device> devices)
@@ -43,10 +43,24 @@ namespace CL.Core.Model
             _delegateHandle.Free();
         }
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+
+            if (disposing)
+            {
+                BuildTask.Dispose();
+                _semaphore.Dispose();
+            }
+
+            _disposed = true;
+        }
+
         public void Dispose()
         {
-            BuildTask.Dispose();
-            _semaphore.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

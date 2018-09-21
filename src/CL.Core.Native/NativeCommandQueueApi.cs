@@ -13,7 +13,7 @@ namespace CL.Core.Native
 
         [DllImport(Constants.DLL, EntryPoint = "clCreateCommandQueue")]
         public static extern IntPtr clCreateCommandQueue(IntPtr context, IntPtr device, CommandQueueProperties properties,
-            out OpenClErrorCode error);
+            out OpenClErrorCode errorCode);
 
 
         [DllImport(Constants.DLL, EntryPoint = "clReleaseCommandQueue")]
@@ -24,9 +24,9 @@ namespace CL.Core.Native
             CommandQueueInfoParameter paramName, uint paramValueSize,
             byte[] paramValue, out uint paramValueSizeReturn);
 
-        IntPtr ICommandQueueApi.clCreateCommandQueue(IntPtr context, IntPtr device, CommandQueueProperties properties, out OpenClErrorCode error)
+        IntPtr ICommandQueueApi.clCreateCommandQueue(IntPtr context, IntPtr device, CommandQueueProperties properties, out OpenClErrorCode errorCode)
         {
-            return clCreateCommandQueue(context, device, properties, out error);
+            return clCreateCommandQueue(context, device, properties, out errorCode);
         }
 
         OpenClErrorCode ICommandQueueApi.clRetainCommandQueue(IntPtr commandQueue)

@@ -4,7 +4,7 @@ namespace CL.Core.API
 {
     public interface ICommandQueueApi
     {
-        IntPtr clCreateCommandQueue(IntPtr context, IntPtr device, CommandQueueProperties properties, out OpenClErrorCode error);
+        IntPtr clCreateCommandQueue(IntPtr context, IntPtr device, CommandQueueProperties properties, out OpenClErrorCode errorCode);
 
         OpenClErrorCode clRetainCommandQueue(IntPtr commandQueue);
 

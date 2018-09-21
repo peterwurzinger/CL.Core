@@ -1,34 +1,10 @@
-﻿using System;
+﻿using CL.Core.Model;
+using System;
 using System.Runtime.InteropServices;
 using System.Text;
-using CL.Core.Model;
 
 namespace CL.Core.API
 {
-    [Obsolete]
-    public static class InfoHelper
-    {
-        public delegate OpenClErrorCode GetInfoFunc<in TParameterName>(IntPtr handle, TParameterName parameterName, uint valueSize,
-            byte[] parameterValue, out uint parameterValueSizeReturn)
-            where TParameterName : Enum;
-
-        [Obsolete]
-        public static byte[] GetInfo<TParameterName>(GetInfoFunc<TParameterName> getInfoFunc, IntPtr handle,
-            TParameterName parameterName)
-            where TParameterName : Enum
-        {
-            var error = getInfoFunc(handle, parameterName, 0, null, out var paramSize);
-            error.ThrowOnError();
-
-            var info = new byte[paramSize];
-
-            error = getInfoFunc(handle, parameterName, paramSize, info, out _);
-            error.ThrowOnError();
-
-            return info;
-        }
-    }
-
     internal class InfoHelper<TParameter>
     where TParameter : Enum
     {
