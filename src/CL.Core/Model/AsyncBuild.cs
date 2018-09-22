@@ -40,7 +40,6 @@ namespace CL.Core.Model
         private void AsyncBuildCallback(IntPtr program, IntPtr userData)
         {
             _semaphore.Release();
-            _delegateHandle.Free();
         }
 
         protected virtual void Dispose(bool disposing)
@@ -52,6 +51,7 @@ namespace CL.Core.Model
             {
                 BuildTask.Dispose();
                 _semaphore.Dispose();
+                _delegateHandle.Free();
             }
 
             _disposed = true;
