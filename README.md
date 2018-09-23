@@ -1,0 +1,2 @@
+[![Build Status](https://dev.azure.com/clcore/CL.Core/_apis/build/status/CLCore%20-%20CI)](https://dev.azure.com/clcore/CL.Core/_build/latest?definitionId=1)
+[![Code Coverage](https://codecov.io/gh/peterwurzinger/CL.Core/branch/master/graph/badge.svg?token=tUjCNqdY9L)](https://codecov.io/gh/peterwurzinger/CL.Core)

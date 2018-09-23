@@ -1,0 +1,23 @@
+<Project>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugType>full</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Authors>Peter Wurzinger</Authors>
+    <Copyright>Copyright © 2018 Peter Wurzinger</Copyright>
+    <Description>Yet to come</Description>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageLicenseUrl>https://opensource.org/licenses/mit</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/peterwurzinger/CL.Core</PackageProjectUrl>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/peterwurzinger/CL.Core</RepositoryUrl>
+  </PropertyGroup>
+
+</Project>
