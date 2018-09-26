@@ -8,8 +8,6 @@ namespace CL.Core.Model
 {
     public class Platform : IHasId, IEquatable<Platform>
     {
-        private readonly IOpenClApi _openClApi;
-        private readonly InfoHelper<PlatformInfoParameter> _platformInfoHelper;
         public IntPtr Id { get; }
         public string Name { get; }
         public string Vendor { get; }
@@ -19,31 +17,31 @@ namespace CL.Core.Model
 
         internal Platform(IntPtr platformId, IOpenClApi openClApi)
         {
-            _openClApi = openClApi ?? throw new ArgumentNullException(nameof(openClApi));
+            var openClApi1 = openClApi ?? throw new ArgumentNullException(nameof(openClApi));
 
             //TODO: Check if Id exists
             Id = platformId;
-            _platformInfoHelper = new InfoHelper<PlatformInfoParameter>(this, _openClApi.PlatformApi.clGetPlatformInfo);
+            var platformInfoHelper = new InfoHelper<PlatformInfoParameter>(this, openClApi1.PlatformApi.clGetPlatformInfo);
             var encoding = Encoding.Default;
 
-            Name = _platformInfoHelper.GetStringValue(PlatformInfoParameter.Name, encoding);
-            Vendor = _platformInfoHelper.GetStringValue(PlatformInfoParameter.Vendor, encoding);
-            Profile = _platformInfoHelper.GetStringValue(PlatformInfoParameter.Profile, encoding);
-            Extensions = _platformInfoHelper.GetStringValue(PlatformInfoParameter.Extensions, encoding).Split(' ');
+            Name = platformInfoHelper.GetStringValue(PlatformInfoParameter.Name, encoding);
+            Vendor = platformInfoHelper.GetStringValue(PlatformInfoParameter.Vendor, encoding);
+            Profile = platformInfoHelper.GetStringValue(PlatformInfoParameter.Profile, encoding);
+            Extensions = platformInfoHelper.GetStringValue(PlatformInfoParameter.Extensions, encoding).Split(' ');
 
-            var errorCode = _openClApi.DeviceApi.clGetDeviceIDs(platformId, DeviceType.All, 0, null, out var numDevices);
+            var errorCode = openClApi1.DeviceApi.clGetDeviceIDs(platformId, DeviceType.All, 0, null, out var numDevices);
             errorCode.ThrowOnError();
 
             var deviceIds = new IntPtr[numDevices];
-            errorCode = _openClApi.DeviceApi.clGetDeviceIDs(platformId, DeviceType.All, numDevices, deviceIds, out _);
+            errorCode = openClApi1.DeviceApi.clGetDeviceIDs(platformId, DeviceType.All, numDevices, deviceIds, out _);
             errorCode.ThrowOnError();
 
-            Devices = deviceIds.Select(deviceId => new Device(this, deviceId, _openClApi.DeviceApi)).ToList().AsReadOnly();
+            Devices = deviceIds.Select(deviceId => new Device(this, deviceId, openClApi1.DeviceApi)).ToList().AsReadOnly();
         }
 
         public bool Equals(Platform other)
         {
-            if (ReferenceEquals(null, other)) return false;
+            if (other is null) return false;
             if (ReferenceEquals(this, other)) return true;
             return Id == other.Id;
         }
