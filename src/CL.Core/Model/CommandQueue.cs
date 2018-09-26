@@ -12,7 +12,7 @@ namespace CL.Core.Model
         private readonly ICommandQueueApi _commandQueueApi;
         private bool _disposed;
 
-        internal CommandQueue(Context context, Device device, bool enableProfiling, bool enableOutOfOrderExcecutionMode, ICommandQueueApi commandQueueApi)
+        internal CommandQueue(Context context, Device device, bool enableProfiling, bool enableOutOfOrderExecutionMode, ICommandQueueApi commandQueueApi)
         {
             Context = context ?? throw new ArgumentNullException(nameof(context));
             Device = device ?? throw new ArgumentNullException(nameof(device));
@@ -21,7 +21,7 @@ namespace CL.Core.Model
             CommandQueueProperties props = 0b0;
             if (enableProfiling)
                 props |= CommandQueueProperties.ProfilingEnable;
-            if (enableOutOfOrderExcecutionMode)
+            if (enableOutOfOrderExecutionMode)
                 props |= CommandQueueProperties.OutOfOrderExecModeEnable;
 
             var id = _commandQueueApi.clCreateCommandQueue(context.Id, device.Id, props, out var error);
