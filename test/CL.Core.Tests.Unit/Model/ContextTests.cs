@@ -1,6 +1,7 @@
 ﻿using CL.Core.API;
 using CL.Core.Model;
 using System;
+using System.Linq;
 using Xunit;
 
 namespace CL.Core.Tests.Unit.Model
@@ -39,6 +40,77 @@ namespace CL.Core.Tests.Unit.Model
         public void CtorShouldThrowExceptionIfDevicesEmpty()
         {
             Assert.Throws<ArgumentException>(() => new Context(FakeOpenClApi, new Device[] { }));
+        }
+
+        [Fact]
+        public void CtorShouldSetId()
+        {
+            var platform = new Platform(new IntPtr(1), FakeOpenClApi);
+            var device = new Device(platform, new IntPtr(1), FakeOpenClApi.DeviceApi);
+            FakeOpenClApi.FakeContextApi.clCreateContextResult = new IntPtr(2);
+
+            var ctx = new Context(FakeOpenClApi, new[] { device });
+            Assert.Equal(new IntPtr(2), ctx.Id);
+        }
+
+        [Fact]
+        public void CtorShouldCreateContext()
+        {
+            var platform = new Platform(new IntPtr(1), FakeOpenClApi);
+            var device = new Device(platform, new IntPtr(1), FakeOpenClApi.DeviceApi);
+
+            var ctx = new Context(FakeOpenClApi, new[] { device });
+
+            Assert.NotNull(FakeOpenClApi.FakeContextApi.FakeContexts[ctx.Id]);
+        }
+
+        [Fact]
+        public void CtorShouldSetDevices()
+        {
+            var platform = new Platform(new IntPtr(1), FakeOpenClApi);
+            var device = new Device(platform, new IntPtr(1), FakeOpenClApi.DeviceApi);
+            FakeOpenClApi.FakeContextApi.clCreateContextResult = new IntPtr(2);
+
+            var ctx = new Context(FakeOpenClApi, new[] { device });
+            Assert.Single(ctx.Devices);
+            Assert.Equal(device, ctx.Devices.Single());
+        }
+
+        [Fact]
+        public void ContextShouldFireNotificationEvent()
+        {
+            var platform = new Platform(new IntPtr(1), FakeOpenClApi);
+            var device = new Device(platform, new IntPtr(1), FakeOpenClApi.DeviceApi);
+            var fired = false;
+
+            var ctx = new Context(FakeOpenClApi, new[] { device });
+            ctx.Notification += (sender, args) => { fired = true; };
+            FakeOpenClApi.FakeContextApi.FakeContexts[ctx.Id].Notify("Fired", IntPtr.Zero, 0);
+
+            Assert.True(fired);
+        }
+
+        [Fact]
+        public void ContextShouldNotThrowExceptionIfDisposedMultipleTimes()
+        {
+            var platform = new Platform(new IntPtr(1), FakeOpenClApi);
+            var device = new Device(platform, new IntPtr(1), FakeOpenClApi.DeviceApi);
+            var ctx = new Context(FakeOpenClApi, new[] { device });
+
+            ctx.Dispose();
+            ctx.Dispose();
+        }
+
+        [Fact]
+        public void DisposeShouldReleaseContext()
+        {
+            var platform = new Platform(new IntPtr(1), FakeOpenClApi);
+            var device = new Device(platform, new IntPtr(1), FakeOpenClApi.DeviceApi);
+            var ctx = new Context(FakeOpenClApi, new[] { device });
+
+            ctx.Dispose();
+
+            Assert.True(FakeOpenClApi.FakeContextApi.FakeContexts[ctx.Id].Released);
         }
 
         [Fact]
@@ -82,7 +154,75 @@ namespace CL.Core.Tests.Unit.Model
 
             var commandQueue = ctx.CreateCommandQueue(device, false, false);
             Assert.NotNull(commandQueue);
+            Assert.Contains(commandQueue, ctx.CommandQueues);
         }
 
+        [Fact]
+        public void CreateBufferShouldThrowExceptionIfAlreadyDisposed()
+        {
+            var platform = new Platform(new IntPtr(1), FakeOpenClApi);
+            var device = new Device(platform, new IntPtr(1), FakeOpenClApi.DeviceApi);
+            var ctx = new Context(FakeOpenClApi, new[] { device });
+            ctx.Dispose();
+
+            Assert.Throws<ObjectDisposedException>(() => ctx.CreateBuffer<byte>());
+        }
+
+        [Fact]
+        public void CreateBufferShouldInitNewBufferConfigurationChain()
+        {
+            var platform = new Platform(new IntPtr(1), FakeOpenClApi);
+            var device = new Device(platform, new IntPtr(1), FakeOpenClApi.DeviceApi);
+            var ctx = new Context(FakeOpenClApi, new[] { device });
+
+            var bufferConfig = ctx.CreateBuffer<byte>();
+            Assert.NotNull(bufferConfig);
+            Assert.Empty(ctx.MemoryObjects);
+        }
+
+        [Fact]
+        public void CreateProgramShouldThrowExceptionIfAlreadyDisposed()
+        {
+            var platform = new Platform(new IntPtr(1), FakeOpenClApi);
+            var device = new Device(platform, new IntPtr(1), FakeOpenClApi.DeviceApi);
+            var ctx = new Context(FakeOpenClApi, new[] { device });
+            ctx.Dispose();
+
+            Assert.Throws<ObjectDisposedException>(() => ctx.CreateProgram());
+        }
+
+        [Fact]
+        public void CreateProgramShouldThrowExceptionIfSourcesNull()
+        {
+            var platform = new Platform(new IntPtr(1), FakeOpenClApi);
+            var device = new Device(platform, new IntPtr(1), FakeOpenClApi.DeviceApi);
+            var ctx = new Context(FakeOpenClApi, new[] { device });
+
+            Assert.Throws<ArgumentNullException>("sources", () => ctx.CreateProgram(null));
+        }
+
+        [Fact]
+        public void CreateProgramShouldThrowExceptionIfSourcesEmpty()
+        {
+            var platform = new Platform(new IntPtr(1), FakeOpenClApi);
+            var device = new Device(platform, new IntPtr(1), FakeOpenClApi.DeviceApi);
+            var ctx = new Context(FakeOpenClApi, new[] { device });
+
+            var sources = new string[] { };
+            Assert.Throws<ArgumentException>("sources", () => ctx.CreateProgram(sources));
+        }
+
+        [Fact]
+        public void CreateProgramShouldReturnProgram()
+        {
+            var platform = new Platform(new IntPtr(1), FakeOpenClApi);
+            var device = new Device(platform, new IntPtr(1), FakeOpenClApi.DeviceApi);
+            var ctx = new Context(FakeOpenClApi, new[] { device });
+
+            var  program = ctx.CreateProgram("__kernel TestKernel() {}");
+
+            Assert.NotNull(program);
+            Assert.Contains(program, ctx.Programs);
+        }
     }
 }

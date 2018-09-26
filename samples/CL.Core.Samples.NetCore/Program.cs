@@ -17,8 +17,10 @@ namespace CL.Core.Samples.NetCore
             {
                 var ctx = new Context(api, platform.Devices);
                 ctx.Notification += CtxOnNotification;
-                var file = new FileInfo("ExampleProgram.cl");
-                var program = ctx.CreateProgram(file);
+
+                var sources = File.ReadAllText("ExampleProgram.cl");
+                var program = ctx.CreateProgram(sources);
+
                 program.BuildAsync(ctx.Devices).Wait();
 
                 var hostMem = new byte[100];

@@ -1,7 +1,6 @@
 ﻿using CL.Core.API;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 
@@ -14,21 +13,24 @@ namespace CL.Core.Model
         public IntPtr Id { get; }
         public IReadOnlyCollection<Device> Devices { get; }
 
+        public IReadOnlyCollection<CommandQueue> CommandQueues => _attachedCommandQueues;
+        public IReadOnlyCollection<MemoryObject> MemoryObjects => _attachedMemoryObjects;
+        public IReadOnlyCollection<Program> Programs => _attachedProgramObjects;
+
         //TODO: Context-Properties
 
-        protected IOpenClApi OpenClApi { get; }
+        private readonly IOpenClApi _openClApi;
+        private readonly List<CommandQueue> _attachedCommandQueues;
+        private readonly List<MemoryObject> _attachedMemoryObjects;
+        private readonly List<Program> _attachedProgramObjects;
 
-        private readonly IList<CommandQueue> _attachedCommandQueues;
-        private readonly IList<MemoryObject> _attachedMemoryObjects;
-        private readonly IList<Program> _attachedProgramObjects;
-
-        private GCHandle _delegateHandle;
+        private GCHandle _notificationHandle;
         private bool _disposed;
 
         //TODO: Extract as factory-method in platform-class, since contexts spanning multiple platforms is not supported anyway 
         public Context(IOpenClApi openClApi, IReadOnlyCollection<Device> devices)
         {
-            OpenClApi = openClApi ?? throw new ArgumentNullException(nameof(openClApi));
+            _openClApi = openClApi ?? throw new ArgumentNullException(nameof(openClApi));
             if (devices == null) throw new ArgumentNullException(nameof(devices));
             if (devices.Count == 0)
                 throw new ArgumentException("Value cannot be an empty collection.", nameof(devices));
@@ -38,10 +40,10 @@ namespace CL.Core.Model
 
             Devices = devices;
 
-            _delegateHandle = GCHandle.Alloc((ContextErrorDelegate)NotificationCallbackProxy);
+            _notificationHandle = GCHandle.Alloc((ContextErrorDelegate)NotificationCallbackProxy);
             var fp = Marshal.GetFunctionPointerForDelegate((ContextErrorDelegate)NotificationCallbackProxy);
 
-            var id = OpenClApi.ContextApi.clCreateContext(IntPtr.Zero, (uint)devices.Count, devices.Select(device => device.Id).ToArray(), fp, IntPtr.Zero, out var error);
+            var id = _openClApi.ContextApi.clCreateContext(IntPtr.Zero, (uint)devices.Count, devices.Select(device => device.Id).ToArray(), fp, IntPtr.Zero, out var error);
             error.ThrowOnError();
             Id = id;
 
@@ -77,7 +79,7 @@ namespace CL.Core.Model
             if (!Devices.Contains(device))
                 throw new ArgumentException("Device is not attached to calling context.", nameof(device));
 
-            var commandQueue = new CommandQueue(this, device, enableProfiling, enableOutOfOrderExecutionMode, OpenClApi.CommandQueueApi);
+            var commandQueue = new CommandQueue(this, device, enableProfiling, enableOutOfOrderExecutionMode, _openClApi.CommandQueueApi);
             _attachedCommandQueues.Add(commandQueue);
 
             return commandQueue;
@@ -86,27 +88,33 @@ namespace CL.Core.Model
         public BufferStubConfiguration<T> CreateBuffer<T>()
         where T : unmanaged
         {
-            return new BufferStubConfiguration<T>(OpenClApi, this, b => _attachedMemoryObjects.Add(b));
+            if (_disposed)
+                throw new ObjectDisposedException(GetType().FullName);
+
+            return new BufferStubConfiguration<T>(_openClApi, this, b => _attachedMemoryObjects.Add(b));
         }
 
-        public Program CreateProgram(params FileInfo[] sourceFiles)
+        public Program CreateProgram(params string[] sources)
         {
-            //TODO: Provide extension methods for string-sources
-            var sources = new string[sourceFiles.Length];
-            for (var i = 0; i < sourceFiles.Length; i++)
-                sources[i] = File.ReadAllText(sourceFiles[i].FullName);
+            if (_disposed)
+                throw new ObjectDisposedException(GetType().FullName);
 
-            var program = new Program(OpenClApi, this, sources);
+            if (sources == null)
+                throw new ArgumentNullException(nameof(sources));
+            if (sources.Length == 0)
+                throw new ArgumentException("Value cannot be an empty collection.", nameof(sources));
+
+            var program = new Program(_openClApi, this, sources);
             _attachedProgramObjects.Add(program);
             return program;
         }
 
         private void ReleaseUnmanagedResources()
         {
-            if (OpenClApi?.ContextApi == null || Id == IntPtr.Zero)
+            if (_openClApi?.ContextApi == null || Id == IntPtr.Zero)
                 return;
 
-            OpenClApi.ContextApi.clReleaseContext(Id).ThrowOnError();
+            _openClApi.ContextApi.clReleaseContext(Id).ThrowOnError();
         }
 
         protected virtual void Dispose(bool disposing)
@@ -116,7 +124,7 @@ namespace CL.Core.Model
 
             if (disposing)
             {
-                _delegateHandle.Free();
+                _notificationHandle.Free();
 
                 foreach (var commandQueue in _attachedCommandQueues)
                     commandQueue.Dispose();
