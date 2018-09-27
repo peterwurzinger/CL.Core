@@ -1,17 +1,35 @@
-﻿using System;
-using CL.Core.API;
+﻿using CL.Core.API;
+using System;
+using System.Collections.Generic;
 
 namespace CL.Core.Fakes
 {
     public class FakeProgramApi : IProgramApi
     {
+        public IDictionary<IntPtr, FakeOpenClProgram> FakePrograms { get; }
+
+        public FakeProgramApi()
+        {
+            FakePrograms = new Dictionary<IntPtr, FakeOpenClProgram>();
+        }
+
         public OpenClErrorCode? clCreateProgramWithSourceErrorCode { get; set; }
         public IntPtr? clCreateProgramWithSourceReturn { get; set; }
         public IntPtr clCreateProgramWithSource(IntPtr context, uint count, string[] strings, uint[] lengths,
             out OpenClErrorCode errorCodeRet)
         {
             errorCodeRet = clCreateProgramWithSourceErrorCode ?? OpenClErrorCode.Success;
-            return clCreateProgramWithSourceReturn ?? IntPtr.Zero;
+            IntPtr id;
+
+            if (errorCodeRet == OpenClErrorCode.Success)
+            {
+                id = clCreateProgramWithSourceReturn ?? new IntPtr(1);
+                FakePrograms[id] = new FakeOpenClProgram(context, strings);
+            }
+            else
+                id = IntPtr.Zero;
+
+            return id;
         }
 
         public OpenClErrorCode? clBuildProgramReturn { get; set; }
@@ -49,7 +67,11 @@ namespace CL.Core.Fakes
         public OpenClErrorCode? clReleaseProgramReturn { get; set; }
         public OpenClErrorCode clReleaseProgram(IntPtr program)
         {
-            return clReleaseProgramReturn ?? OpenClErrorCode.Success;
+            var result = clReleaseProgramReturn ?? OpenClErrorCode.Success;
+
+            FakePrograms[program].Released = true;
+
+            return result;
         }
     }
 }

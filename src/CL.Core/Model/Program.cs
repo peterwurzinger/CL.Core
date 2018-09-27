@@ -17,7 +17,9 @@ namespace CL.Core.Model
 
         public IntPtr Id { get; }
         public Context Context { get; }
-        public IDictionary<Device, BuildInfo> Builds { get; }
+
+        private readonly ConcurrentDictionary<Device, BuildInfo> _builds;
+        public IReadOnlyDictionary<Device, BuildInfo> Builds => _builds;
 
         private OpenClErrorCode BuildInfoFuncCurried(IntPtr deviceHandle, ProgramBuildInfoParameter name, uint size, IntPtr paramValue, out uint paramValueSizeReturned)
             => _api.ProgramApi.clGetProgramBuildInfo(Id, deviceHandle, name, size, paramValue, out paramValueSizeReturned);
@@ -37,7 +39,7 @@ namespace CL.Core.Model
             Id = id;
             _programInfoHelper = new InfoHelper<ProgramInfoParameter>(this, _api.ProgramApi.clGetProgramInfo);
 
-            Builds = new ConcurrentDictionary<Device, BuildInfo>();
+            _builds = new ConcurrentDictionary<Device, BuildInfo>();
         }
 
         //TODO: Build overloads for every device associated with program
@@ -70,7 +72,7 @@ namespace CL.Core.Model
         {
             //TODO: lock? Concurrent builds would lead to race conditions
 
-            Builds.Clear();
+            _builds.Clear();
 
             var buildErrors = new List<ProgramBuildException>();
 
@@ -91,7 +93,7 @@ namespace CL.Core.Model
                     buildErrors.Add(new ProgramBuildException(this, device, log));
 
 
-                Builds[device] = new BuildInfo(status, log, options, new Memory<byte>(availableBinaries[device.Id]));
+                _builds[device] = new BuildInfo(status, log, options, new Memory<byte>(availableBinaries[device.Id]));
             }
 
             if (buildErrors.Any())
@@ -138,7 +140,7 @@ namespace CL.Core.Model
             if (disposing)
             {
                 //TODO: Release kernels
-                Builds.Clear();
+                _builds.Clear();
             }
             _disposed = true;
         }
