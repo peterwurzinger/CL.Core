@@ -8,5 +8,6 @@
         IContextApi ContextApi { get; }
         IBufferApi BufferApi { get; }
         IProgramApi ProgramApi { get; }
+        IKernelApi KernelApi { get; }
     }
 }

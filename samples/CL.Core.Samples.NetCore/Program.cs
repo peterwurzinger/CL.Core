@@ -23,8 +23,13 @@ namespace CL.Core.Samples.NetCore
 
                 program.BuildAsync(ctx.Devices).Wait();
 
-                var hostMem = new byte[100];
-                var hostBuffer = ctx.CreateBuffer<byte>().ByHostMemory(hostMem).AsReadWrite();
+                var kernel = program.CreateKernel("SAXPY");
+
+                var x = new float[100];
+                var y = new float[100];
+
+                var xBuffer = ctx.CreateBuffer<float>().ByHostMemory(x).AsReadWrite();
+                var yBuffer = ctx.CreateBuffer<float>().ByHostMemory(y).AsReadOnly();
 
                 foreach (var device in platform.Devices)
                 {

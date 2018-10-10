@@ -18,6 +18,9 @@ namespace CL.Core.Model
         public Context Context { get; }
 
         private readonly ConcurrentDictionary<Device, BuildInfo> _builds;
+        private readonly List<Kernel> _attachedKernels;
+
+        public IReadOnlyCollection<Kernel> Kernels => _attachedKernels;
         public IReadOnlyDictionary<Device, BuildInfo> Builds => _builds;
 
         private OpenClErrorCode BuildInfoFuncCurried(IntPtr deviceHandle, ProgramBuildInfoParameter name, uint size, IntPtr paramValue, out uint paramValueSizeReturned)
@@ -39,6 +42,7 @@ namespace CL.Core.Model
             _programInfoHelper = new InfoHelper<ProgramInfoParameter>(this, _api.ProgramApi.clGetProgramInfo);
 
             _builds = new ConcurrentDictionary<Device, BuildInfo>();
+            _attachedKernels = new List<Kernel>();
         }
 
         //TODO: Build overloads for every device associated with program
@@ -46,7 +50,7 @@ namespace CL.Core.Model
         public void Build(IReadOnlyCollection<Device> devices)
         {
             //TODO: Is there a need to implement Build(devices) synchronously?
-            BuildAsync(devices).Wait();
+            BuildAsync(devices).GetAwaiter().GetResult();
         }
 
         //TODO: Compilation options & optimizations
@@ -60,6 +64,8 @@ namespace CL.Core.Model
 
             var build = new AsyncBuild(_api.ProgramApi, this, devices);
 
+            //TODO: Rethink this. UpdateBuildInfos(...) throwing exception is quite unintuitive
+
             return build.BuildTask.ContinueWith(t =>
             {
                 build.Dispose();
@@ -67,10 +73,21 @@ namespace CL.Core.Model
             }, TaskScheduler.Current);
         }
 
+        public Kernel CreateKernel(string name)
+        {
+            if (_disposed)
+                throw new ObjectDisposedException(GetType().FullName);
+
+            var kernel = new Kernel(_api, this, name);
+            _attachedKernels.Add(kernel);
+            return kernel;
+        }
+
         private void UpdateBuildInfos(IEnumerable<Device> devices)
         {
             //TODO: lock? Concurrent builds would lead to race conditions
 
+            //TODO: Why clear? Override could also be enough while maintaining builds from before
             _builds.Clear();
 
             var buildErrors = new List<ProgramBuildException>();
@@ -92,7 +109,8 @@ namespace CL.Core.Model
                     buildErrors.Add(new ProgramBuildException(this, device, log));
 
 
-                _builds[device] = new BuildInfo(status, log, options, availableBinaries[device.Id]);
+                if (!_disposed)
+                    _builds[device] = new BuildInfo(status, log, options, availableBinaries[device.Id]);
             }
 
             if (buildErrors.Any())
@@ -123,8 +141,8 @@ namespace CL.Core.Model
             error.ThrowOnError();
 
             return sortedDevices.Zip(memorySegments,
-                                    (device, memory) => new KeyValuePair<IntPtr, ReadOnlyMemory<byte>>(device, memory)
-                                ).ToDictionary(k => k.Key, v => v.Value);
+                                        (device, memory) => new KeyValuePair<IntPtr, ReadOnlyMemory<byte>>(device, memory)
+                                    ).ToDictionary(k => k.Key, v => v.Value);
         }
 
         private void ReleaseUnmanagedResources()
@@ -141,8 +159,9 @@ namespace CL.Core.Model
             ReleaseUnmanagedResources();
             if (disposing)
             {
-                //TODO: Release kernels
                 _builds.Clear();
+                foreach (var kernel in _attachedKernels)
+                    kernel.Dispose();
             }
             _disposed = true;
         }
@@ -158,8 +177,5 @@ namespace CL.Core.Model
             Dispose(false);
         }
 
-
     }
-
-
 }

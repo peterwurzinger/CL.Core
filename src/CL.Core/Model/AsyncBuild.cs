@@ -31,8 +31,8 @@ namespace CL.Core.Model
             _delegateHandle = GCHandle.Alloc(callbackDelegate);
             var fp = Marshal.GetFunctionPointerForDelegate(callbackDelegate);
 
-            var error = programApi.clBuildProgram(program.Id, (uint)devices.Count, devices.Select(d => d.Id).ToArray(), string.Empty, fp, IntPtr.Zero);
-            error.ThrowOnError();
+            //Ignoring errors returned by this call intentionally, since they will get handled on callback
+            programApi.clBuildProgram(program.Id, (uint)devices.Count, devices.Select(d => d.Id).ToArray(), string.Empty, fp, IntPtr.Zero);
 
             BuildTask = _semaphore.WaitAsync();
         }

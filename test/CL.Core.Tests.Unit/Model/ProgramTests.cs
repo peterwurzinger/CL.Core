@@ -72,6 +72,23 @@ namespace CL.Core.Tests.Unit.Model
         }
 
         [Fact]
+        public void CtorShouldInitAttachedKernelList()
+        {
+            var program = new Program(FakeOpenClApi, _context, _sources);
+
+            Assert.NotNull(program.Kernels);
+            Assert.Empty(program.Kernels);
+        }
+
+        [Fact]
+        public void GetContextShouldReturnContextProvidedInConstructor()
+        {
+            var program = new Program(FakeOpenClApi, _context, _sources);
+
+            Assert.Equal(_context, program.Context);
+        }
+
+        [Fact]
         public void DisposeShouldNotThrowExceptionIfDisposedMultipleTimes()
         {
             var program = new Program(FakeOpenClApi, _context, _sources);
@@ -108,5 +125,24 @@ namespace CL.Core.Tests.Unit.Model
             Assert.Throws<ArgumentNullException>("devices", () => program.Build(null));
         }
 
+        [Fact]
+        public void CreateKernelShouldThrowExceptionIfDisposed()
+        {
+            var program = new Program(FakeOpenClApi, _context, _sources);
+
+            program.Dispose();
+
+            Assert.Throws<ObjectDisposedException>(() => program.CreateKernel("Testkernel"));
+        }
+
+        [Fact]
+        public void CreateKernelShouldCreateKernel()
+        {
+            var program = new Program(FakeOpenClApi, _context, _sources);
+
+            var kernel = program.CreateKernel("Testkernel");
+
+            Assert.NotNull(kernel);
+        }
     }
 }
