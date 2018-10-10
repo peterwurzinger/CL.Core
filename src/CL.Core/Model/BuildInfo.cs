@@ -8,9 +8,9 @@ namespace CL.Core.Model
         public BuildStatus Status { get; }
         public string Options { get; }
         public string Log { get; }
-        public Memory<byte> Binaries { get; }
+        public ReadOnlyMemory<byte> Binaries { get; }
 
-        public BuildInfo(BuildStatus status, string log, string options, Memory<byte> binaries)
+        public BuildInfo(BuildStatus status, string log, string options, ReadOnlyMemory<byte> binaries)
         {
             Status = status;
             Log = log ?? throw new ArgumentNullException(nameof(log));

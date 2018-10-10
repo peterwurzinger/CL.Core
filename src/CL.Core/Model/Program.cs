@@ -3,7 +3,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -93,36 +92,39 @@ namespace CL.Core.Model
                     buildErrors.Add(new ProgramBuildException(this, device, log));
 
 
-                _builds[device] = new BuildInfo(status, log, options, new Memory<byte>(availableBinaries[device.Id]));
+                _builds[device] = new BuildInfo(status, log, options, availableBinaries[device.Id]);
             }
 
             if (buildErrors.Any())
                 throw new AggregateException("Error while building program.", buildErrors);
         }
 
-        private unsafe Dictionary<IntPtr, byte[]> GetBinaries()
+        private unsafe Dictionary<IntPtr, ReadOnlyMemory<byte>> GetBinaries()
         {
-            var sortedDevices = _programInfoHelper.GetValues<IntPtr>(ProgramInfoParameter.Devices);
-            var binarySizes = _programInfoHelper.GetValues<long>(ProgramInfoParameter.BinarySizes).ToArray();
+            var sortedDevices = _programInfoHelper.GetValues<IntPtr>(ProgramInfoParameter.Devices).ToArray();
+            if (!sortedDevices.Any())
+                return new Dictionary<IntPtr, ReadOnlyMemory<byte>>();
 
-            var memoryPointers = new IntPtr[binarySizes.Length];
-            for (var i = 0; i < binarySizes.Length; i++)
-                memoryPointers[i] = Marshal.AllocHGlobal((int)binarySizes[i]);
+            var binarySizes = _programInfoHelper.GetValues<ulong>(ProgramInfoParameter.BinarySizes).ToArray();
 
-            fixed (void* handle = memoryPointers)
+            var memorySegments = binarySizes.Select(size => new ReadOnlyMemory<byte>(new byte[size])).ToArray();
+            var handles = memorySegments.Select(mem => mem.Pin()).ToArray();
+
+            OpenClErrorCode error;
+            fixed (void* ptr = handles.Select(handle => new IntPtr(handle.Pointer)).ToArray())
             {
-                var error = _api.ProgramApi.clGetProgramInfo(Id, ProgramInfoParameter.Binaries, (uint)(sizeof(IntPtr) * binarySizes.Length), new IntPtr(handle), out _);
-                error.ThrowOnError();
+                error = _api.ProgramApi.clGetProgramInfo(Id, ProgramInfoParameter.Binaries, (uint)(sizeof(IntPtr) * binarySizes.Length), new IntPtr(ptr), out _);
             }
 
-            var binaries = new Dictionary<IntPtr, byte[]>();
-            for (var i = 0; i < memoryPointers.Length; i++)
-            {
-                binaries[sortedDevices[i]] = new ReadOnlySpan<byte>(memoryPointers[i].ToPointer(), (int)binarySizes[i]).ToArray();
-                Marshal.FreeHGlobal(memoryPointers[i]);
-            }
+            //Unpin the Memory handles
+            foreach (var handle in handles)
+                handle.Dispose();
 
-            return binaries;
+            error.ThrowOnError();
+
+            return sortedDevices.Zip(memorySegments,
+                                    (device, memory) => new KeyValuePair<IntPtr, ReadOnlyMemory<byte>>(device, memory)
+                                ).ToDictionary(k => k.Key, v => v.Value);
         }
 
         private void ReleaseUnmanagedResources()
@@ -155,5 +157,9 @@ namespace CL.Core.Model
         {
             Dispose(false);
         }
+
+
     }
+
+
 }
