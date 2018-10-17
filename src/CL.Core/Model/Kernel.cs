@@ -48,11 +48,7 @@ namespace CL.Core.Model
 
         public void SetMemoryArgument(int argIndex, MemoryObject memoryObject)
         {
-            if (_disposed)
-                throw new ObjectDisposedException(GetType().FullName);
-
-            ValidateArgIndex(argIndex);
-            _api.KernelApi.clSetKernelArg(Id, (uint)argIndex, memoryObject.Size, memoryObject.Id).ThrowOnError();
+            SetArgument(argIndex, memoryObject.Id);
         }
 
         private void ValidateArgIndex(int argIndex)

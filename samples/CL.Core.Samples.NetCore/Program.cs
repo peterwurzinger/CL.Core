@@ -26,10 +26,9 @@ namespace CL.Core.Samples.NetCore
                 var kernel = program.CreateKernel("SAXPY");
 
                 var x = new float[100];
-                var y = new float[100];
 
                 var xBuffer = ctx.CreateBuffer<float>().ByHostMemory(x).AsReadWrite();
-                var yBuffer = ctx.CreateBuffer<float>().ByHostMemory(y).AsReadOnly();
+                var yBuffer = ctx.CreateBuffer<float>().ByAllocation(100).AsReadOnly();
 
                 kernel.SetMemoryArgument(0, xBuffer);
                 kernel.SetMemoryArgument(1, yBuffer);
