@@ -53,5 +53,13 @@ namespace CL.Core.Fakes
             paramValueSizeReturned = clGetKernelInfoParamValueSizeReturned ?? 4;
             return clGetKernelInfoReturn ?? OpenClErrorCode.Success;
         }
+
+        public OpenClErrorCode? clEnqueueNDRangeKernelError { get; set; }
+        public OpenClErrorCode clEnqueueNDRangeKernel(IntPtr commandQueue, IntPtr kernel, uint workDim, UIntPtr globalWorkOffset,
+            UIntPtr globalWorkSize, UIntPtr localWorkSize, uint numEventsInWaitList, IntPtr eventWaitList, out IntPtr evt)
+        {
+            evt = IntPtr.Zero;
+            return clEnqueueNDRangeKernelError ?? OpenClErrorCode.Success;
+        }
     }
 }

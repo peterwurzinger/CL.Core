@@ -9,5 +9,6 @@ namespace CL.Core.API
         OpenClErrorCode clSetKernelArg(IntPtr kernel, uint argIndex, ulong argSize, IntPtr argValue);
         OpenClErrorCode clGetKernelInfo(IntPtr kernel, KernelInfoParameter paramName, uint paramValueSize, IntPtr paramValue, out uint paramValueSizeReturned);
 
+        OpenClErrorCode clEnqueueNDRangeKernel(IntPtr commandQueue, IntPtr kernel, uint workDim, UIntPtr globalWorkOffset, UIntPtr globalWorkSize, UIntPtr localWorkSize, uint numEventsInWaitList, IntPtr eventWaitList, out IntPtr evt);
     }
 }

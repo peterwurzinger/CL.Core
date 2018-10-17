@@ -21,6 +21,12 @@ namespace CL.Core.Native
             uint paramValueSize, IntPtr paramValue,
             out uint paramValueSizeReturned);
 
+        [DllImport(Constants.DLL, EntryPoint = "clEnqueueNDRangeKernel")]
+        public static extern OpenClErrorCode clEnqueueNDRangeKernel(IntPtr commandQueue, IntPtr kernel, uint workDim,
+            UIntPtr globalWorkOffset,
+            UIntPtr globalWorkSize, UIntPtr localWorkSize, uint numEventsInWaitList, IntPtr eventWaitList,
+            out IntPtr evt);
+
         IntPtr IKernelApi.clCreateKernel(IntPtr program, string kernelName, out OpenClErrorCode errorCodeRet)
         {
             return clCreateKernel(program, kernelName, out errorCodeRet);
@@ -40,6 +46,12 @@ namespace CL.Core.Native
             out uint paramValueSizeReturned)
         {
             return clGetKernelInfo(kernel, paramName, paramValueSize, paramValue, out paramValueSizeReturned);
+        }
+
+        OpenClErrorCode IKernelApi.clEnqueueNDRangeKernel(IntPtr commandQueue, IntPtr kernel, uint workDim, UIntPtr globalWorkOffset,
+            UIntPtr globalWorkSize, UIntPtr localWorkSize, uint numEventsInWaitList, IntPtr eventWaitList, out IntPtr evt)
+        {
+            return clEnqueueNDRangeKernel(commandQueue, kernel, workDim, globalWorkOffset, globalWorkSize, localWorkSize, numEventsInWaitList, eventWaitList, out evt);
         }
     }
 }

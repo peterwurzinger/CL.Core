@@ -1,6 +1,7 @@
 ﻿using CL.Core.Model;
 using CL.Core.Native;
 using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace CL.Core.Samples.NetCore
@@ -25,19 +26,36 @@ namespace CL.Core.Samples.NetCore
 
                 var kernel = program.CreateKernel("SAXPY");
 
-                var x = new float[100];
+                const long workSize = 200_000_000;
 
-                var xBuffer = ctx.CreateBuffer<float>().ByHostMemory(x).AsReadWrite();
-                var yBuffer = ctx.CreateBuffer<float>().ByAllocation(100).AsReadOnly();
+                var x = new float[workSize];
+                var rnd = new Random();
+                for (var i = 0; i < x.Length; i++)
+                {
+                    x[i] = (float)rnd.NextDouble() * 100;
+                }
+
+                var xBuffer = ctx.CreateBuffer<float>().ByAllocation((uint)workSize).AsReadWrite();
+                var yBuffer = ctx.CreateBuffer<float>().ByAllocation((uint)workSize).AsReadOnly();
 
                 kernel.SetMemoryArgument(0, xBuffer);
                 kernel.SetMemoryArgument(1, yBuffer);
-                kernel.SetArgument(2, 5f);
+                kernel.SetArgument(2, 300f);
 
+                var watch = new Stopwatch();
                 foreach (var device in platform.Devices)
                 {
+                    watch.Reset();
+                    watch.Start();
+
                     var cq = ctx.CreateCommandQueue(device, false, false);
-                    Console.WriteLine(cq.Id);
+
+                    xBuffer.Write(cq, x);
+                    kernel.Execute(cq, 1, new[] { (ulong)x.Length });
+
+                    var readBuffer = yBuffer.Read(cq);
+                    watch.Stop();
+                    Console.WriteLine($"Wrote, multiplied and read back {workSize} items in {watch.Elapsed.TotalMilliseconds}ms");
                 }
 
                 ctx.Dispose();
