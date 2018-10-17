@@ -14,14 +14,14 @@ namespace CL.Core.Model
         public IReadOnlyCollection<Device> Devices { get; }
 
         public IReadOnlyCollection<CommandQueue> CommandQueues => _attachedCommandQueues;
-        public IReadOnlyCollection<IMemoryObject> MemoryObjects => _attachedMemoryObjects;
+        public IReadOnlyCollection<MemoryObject> MemoryObjects => _attachedMemoryObjects;
         public IReadOnlyCollection<Program> Programs => _attachedProgramObjects;
 
         //TODO: Context-Properties
 
         private readonly IOpenClApi _openClApi;
         private readonly List<CommandQueue> _attachedCommandQueues;
-        private readonly List<IMemoryObject> _attachedMemoryObjects;
+        private readonly List<MemoryObject> _attachedMemoryObjects;
         private readonly List<Program> _attachedProgramObjects;
 
         private GCHandle _notificationHandle;
@@ -48,7 +48,7 @@ namespace CL.Core.Model
             Id = id;
 
             _attachedCommandQueues = new List<CommandQueue>();
-            _attachedMemoryObjects = new List<IMemoryObject>();
+            _attachedMemoryObjects = new List<MemoryObject>();
             _attachedProgramObjects = new List<Program>();
         }
 

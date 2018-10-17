@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace CL.Core.Model
 {
-    public class Buffer<T> : BufferBase
+    public class Buffer<T> : MemoryObject
         where T : unmanaged
     {
         private bool _disposed;

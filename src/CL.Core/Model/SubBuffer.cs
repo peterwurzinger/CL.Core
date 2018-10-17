@@ -3,7 +3,7 @@ using System;
 
 namespace CL.Core.Model
 {
-    public class SubBuffer<T> : BufferBase
+    public class SubBuffer<T> : MemoryObject
     where T : unmanaged
     {
         internal SubBuffer(IOpenClApi api, Buffer<T> parentBuffer)

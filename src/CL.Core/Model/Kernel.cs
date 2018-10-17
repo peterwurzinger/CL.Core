@@ -47,7 +47,7 @@ namespace CL.Core.Model
         }
 
         public void SetMemoryArgument<TMem>(int argIndex, TMem memoryObject)
-            where TMem : IMemoryObject
+            where TMem : MemoryObject
         {
             if (_disposed)
                 throw new ObjectDisposedException(GetType().FullName);

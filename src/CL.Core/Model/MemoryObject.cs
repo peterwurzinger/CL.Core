@@ -4,7 +4,7 @@ using System.Buffers;
 
 namespace CL.Core.Model
 {
-    public abstract class BufferBase : IMemoryObject
+    public abstract class MemoryObject : IHasId, IDisposable
     {
         public IntPtr Id { get; }
         public Context Context { get; }
@@ -16,9 +16,8 @@ namespace CL.Core.Model
         private MemoryHandle? _hostMemory;
         private bool _disposed;
 
-        protected BufferBase(IOpenClApi api, Context context, IntPtr id, MemoryHandle? hostMemory = null)
+        protected MemoryObject(IOpenClApi api, Context context, IntPtr id, MemoryHandle? hostMemory = null)
         {
-            _hostMemory = hostMemory;
             Api = api ?? throw new ArgumentNullException(nameof(api));
             Context = context ?? throw new ArgumentNullException(nameof(context));
             Id = id;
@@ -49,7 +48,7 @@ namespace CL.Core.Model
                 Api.BufferApi.clReleaseMemObject(Id);
         }
 
-        ~BufferBase()
+        ~MemoryObject()
         {
             Dispose(false);
         }
