@@ -46,8 +46,7 @@ namespace CL.Core.Model
             error.ThrowOnError();
         }
 
-        public void SetMemoryArgument<TMem>(int argIndex, TMem memoryObject)
-            where TMem : MemoryObject
+        public void SetMemoryArgument(int argIndex, MemoryObject memoryObject)
         {
             if (_disposed)
                 throw new ObjectDisposedException(GetType().FullName);
