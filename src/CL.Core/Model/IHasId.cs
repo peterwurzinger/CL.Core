@@ -2,7 +2,7 @@
 
 namespace CL.Core.Model
 {
-    internal interface IHasId
+    public interface IHasId
     {
         IntPtr Id { get; }
     }

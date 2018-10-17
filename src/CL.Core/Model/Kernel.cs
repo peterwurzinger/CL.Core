@@ -36,21 +36,24 @@ namespace CL.Core.Model
         public void SetArgument<TArg>(int argIndex, TArg value)
             where TArg : unmanaged
         {
+            if (_disposed)
+                throw new ObjectDisposedException(GetType().FullName);
+
             ValidateArgIndex(argIndex);
             var handle = GCHandle.Alloc(value, GCHandleType.Pinned);
-            var error = _api.KernelApi.clSetKernelArg(Id, (uint)argIndex, (ulong)Marshal.SizeOf<TArg>(),
-                handle.AddrOfPinnedObject());
+            var error = _api.KernelApi.clSetKernelArg(Id, (uint)argIndex, (ulong)Marshal.SizeOf<TArg>(), handle.AddrOfPinnedObject());
             handle.Free();
             error.ThrowOnError();
         }
 
         public void SetMemoryArgument<TMem>(int argIndex, TMem memoryObject)
-            where TMem : MemoryObject
+            where TMem : IMemoryObject
         {
-            ValidateArgIndex(argIndex);
+            if (_disposed)
+                throw new ObjectDisposedException(GetType().FullName);
 
-            //TODO: Size of memory object, well...¯\_(ツ)_/¯
-            //clSetKernelArg(Id, index, memoryObject.Size(?), memoryObject.Id);
+            ValidateArgIndex(argIndex);
+            _api.KernelApi.clSetKernelArg(Id, (uint)argIndex, memoryObject.Size, memoryObject.Id).ThrowOnError();
         }
 
         private void ValidateArgIndex(int argIndex)

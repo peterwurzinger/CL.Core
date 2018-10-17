@@ -41,9 +41,18 @@ namespace CL.Core.Fakes
         }
 
         public OpenClErrorCode? clReleaseMemObjectResult { get; set; }
-        public OpenClErrorCode clReleaseMemObject(IntPtr memobj)
+        public OpenClErrorCode clReleaseMemObject(IntPtr memObj)
         {
             return clReleaseMemObjectResult ?? OpenClErrorCode.Success;
+        }
+
+        public uint? clGetMemObjectInfoParamValueSizeRet { get; set; }
+        public OpenClErrorCode? clGetMemObjectInfoErrorCode { get; set; }
+        public OpenClErrorCode clGetMemObjectInfo(IntPtr memObj, MemoryObjectInfoParameter paramName, uint paramValueSize,
+            IntPtr paramValue, out uint paramValueSizeRet)
+        {
+            paramValueSizeRet = clGetMemObjectInfoParamValueSizeRet ?? 4;
+            return clGetMemObjectInfoErrorCode ?? OpenClErrorCode.Success;
         }
     }
 }

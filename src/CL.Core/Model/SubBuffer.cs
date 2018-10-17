@@ -1,5 +1,5 @@
-﻿using System;
-using CL.Core.API;
+﻿using CL.Core.API;
+using System;
 
 namespace CL.Core.Model
 {
@@ -7,7 +7,7 @@ namespace CL.Core.Model
     where T : unmanaged
     {
         internal SubBuffer(IOpenClApi api, Buffer<T> parentBuffer)
-            : base(api, parentBuffer.Context)
+            : base(api, parentBuffer.Context, IntPtr.Zero)
         {
             throw new NotImplementedException();
         }

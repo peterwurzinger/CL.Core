@@ -2,7 +2,6 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 
 namespace CL.Core.Model
 {
@@ -11,34 +10,16 @@ namespace CL.Core.Model
     {
         private bool _disposed;
         private readonly IList<SubBuffer<T>> _attachedSubBuffers;
-        private readonly MemoryHandle? _handle;
 
-        internal unsafe Buffer(IOpenClApi api, Context context, MemoryFlags flags, Memory<T> hostMemory)
-           : base(api, context)
+        internal Buffer(IOpenClApi api, Context context, IntPtr id, MemoryHandle? hostMemory = null)
+            : base(api, context, id, hostMemory)
         {
-            var typeSize = Marshal.SizeOf<T>();
-
-            _handle = hostMemory.Pin();
-            var id = Api.BufferApi.clCreateBuffer(context.Id, flags, (uint)typeSize * (uint)hostMemory.Length, new IntPtr(_handle.Value.Pointer), out var error);
-            error.ThrowOnError();
-
-            Id = id;
-
             _attachedSubBuffers = new List<SubBuffer<T>>();
         }
 
-        internal Buffer(IOpenClApi api, Context context, MemoryFlags flags, uint numElements)
-            : base(api, context)
+        internal Buffer(IOpenClApi api, Context context, IntPtr id)
+        : this(api, context, id, null)
         {
-            var typeSize = Marshal.SizeOf<T>();
-
-            var id = Api.BufferApi.clCreateBuffer(context.Id, flags, (uint)typeSize * numElements, IntPtr.Zero, out var error);
-            error.ThrowOnError();
-
-            //TODO: Query for host-pointer and store in memory-handle?
-
-            Id = id;
-            _attachedSubBuffers = new List<SubBuffer<T>>();
         }
 
         public SubBuffer<T> CreateSubBuffer()
@@ -60,11 +41,10 @@ namespace CL.Core.Model
                 {
                     foreach (var subBuffer in _attachedSubBuffers)
                         subBuffer.Dispose();
-
-                    _handle?.Dispose();
                 }
                 _disposed = true;
             }
+
             base.Dispose(disposing);
         }
     }

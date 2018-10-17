@@ -13,7 +13,7 @@ namespace CL.Core.API
         /// <param name="hostPtr">A pointer to the buffer data that may already be allocated by the application. The size of the buffer that host_ptr points to must be greater than or equal to the size bytes. </param>
         /// <param name="errorCode">Returns an appropriate error code. If errorCode is NULL, no error code is returned. </param>
         /// <returns></returns>
-        
+
         //TODO: Make size_t - params ulong?
         IntPtr clCreateBuffer(IntPtr context, MemoryFlags flags, uint size, IntPtr hostPtr, out OpenClErrorCode errorCode);
 
@@ -90,11 +90,29 @@ namespace CL.Core.API
         /// <summary>
         /// Decrements the memory object reference count. 
         /// </summary>
-        /// <param name="memobj"></param>
+        /// <param name="memObj"></param>
         /// <returns>Returns CL_SUCCESS if the function is executed successfully. Otherwise, it returns one of the following errors:
-        /// * CL_INVALID_MEM_OBJECT if <param name="memobj">memobj</param> is a not a valid memory object. 
+        /// * CL_INVALID_MEM_OBJECT if <param name="memObj">memObj</param> is a not a valid memory object. 
         /// * CL_OUT_OF_RESOURCES if there is a failure to allocate resources required by the OpenCL implementation on the device. 
         /// * CL_OUT_OF_HOST_MEMORY if there is a failure to allocate resources required by the OpenCL implementation on the host. </returns>
-        OpenClErrorCode clReleaseMemObject(IntPtr memobj);
+        OpenClErrorCode clReleaseMemObject(IntPtr memObj);
+
+        /// <summary>
+        /// Used to get information that is common to all memory objects (buffer and image objects). 
+        /// </summary>
+        /// <param name="memObj">Specifies the memory object being queried.</param>
+        /// <param name="paramName">Specifies the information to query.</param>
+        /// <param name="paramValueSize">A pointer to memory where the appropriate result being queried is returned. If param_value is NULL, it is ignored. </param>
+        /// <param name="paramValue">Used to specify the size in bytes of memory pointed to by param_value.</param>
+        /// <param name="paramValueSizeRet">Returns the actual size in bytes of data being queried by param_value. If param_value_size_ret is NULL, it is ignored. </param>
+        /// <returns>Returns CL_SUCCESS if the function is executed successfully. Otherwise, it returns one of the following errors:
+        /// CL_INVALID_VALUE if param_name is not valid, or if size in bytes specified by param_value_size is less than the size of return type as described in the table above and param_value is not NULL. 
+        /// CL_INVALID_D3D10_RESOURCE_KHR If the cl_khr_d3d10_sharing extension is enabled and if param_name is CL_MEM_D3D10_RESOURCE_KHR and memObj was not created by the function clCreateFromD3D10BufferKHR, clCreateFromD3D10Texture2DKHR, or clCreateFromD3D10Texture3DKHR. 
+        /// CL_INVALID_MEM_OBJECT if memObj is a not a valid memory object. 
+        /// CL_OUT_OF_RESOURCES if there is a failure to allocate resources required by the OpenCL implementation on the device. 
+        /// CL_OUT_OF_HOST_MEMORY if there is a failure to allocate resources required by the OpenCL implementation on the host. </returns>
+
+        OpenClErrorCode clGetMemObjectInfo(IntPtr memObj, MemoryObjectInfoParameter paramName, uint paramValueSize,
+            IntPtr paramValue, out uint paramValueSizeRet);
     }
 }

@@ -1,6 +1,7 @@
-﻿using System;
-using CL.Core.API;
+﻿using CL.Core.API;
 using CL.Core.Model;
+using System;
+using System.Runtime.InteropServices;
 
 namespace CL.Core
 {
@@ -17,7 +18,10 @@ namespace CL.Core
 
         protected override Buffer<T> Build()
         {
-            return new Buffer<T>(Api, Context, Flags, _numElements);
+            var typeSize = Marshal.SizeOf<T>();
+            var id = Api.BufferApi.clCreateBuffer(Context.Id, Flags, _numElements * (uint)typeSize, IntPtr.Zero, out var error);
+            error.ThrowOnError();
+            return new Buffer<T>(Api, Context, id);
         }
     }
 }

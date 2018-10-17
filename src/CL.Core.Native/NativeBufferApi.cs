@@ -26,8 +26,12 @@ namespace CL.Core.Native
             IntPtr mem, uint numEventsInWaitList, IntPtr[] eventWaitList, out IntPtr evt);
 
         [DllImport(Constants.DLL, EntryPoint = "clReleaseMemObject")]
-        public static extern OpenClErrorCode clReleaseMemObject(IntPtr memobj);
+        public static extern OpenClErrorCode clReleaseMemObject(IntPtr memObj);
 
+        [DllImport(Constants.DLL, EntryPoint = "clGetMemObjectInfo")]
+        public static extern OpenClErrorCode clGetMemObjectInfo(IntPtr memObj, MemoryObjectInfoParameter paramName,
+            uint paramValueSize,
+            IntPtr paramValue, out uint paramValueSizeRet);
 
         IntPtr IBufferApi.clCreateSubBuffer(IntPtr buffer, MemoryFlags flags, BufferCreateType bufferCreateType, IntPtr bufferCreateInfo,
             out OpenClErrorCode errorCode)
@@ -52,9 +56,15 @@ namespace CL.Core.Native
             return clCreateBuffer(context, flags, size, hostPtr, out errorCode);
         }
 
-        OpenClErrorCode IBufferApi.clReleaseMemObject(IntPtr memobj)
+        OpenClErrorCode IBufferApi.clReleaseMemObject(IntPtr memObj)
         {
-            return clReleaseMemObject(memobj);
+            return clReleaseMemObject(memObj);
+        }
+
+        OpenClErrorCode IBufferApi.clGetMemObjectInfo(IntPtr memObj, MemoryObjectInfoParameter paramName, uint paramValueSize,
+            IntPtr paramValue, out uint paramValueSizeRet)
+        {
+            return clGetMemObjectInfo(memObj, paramName, paramValueSize, paramValue, out paramValueSizeRet);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using CL.Core.API;
 using CL.Core.Model;
 using System;
+using System.Runtime.InteropServices;
 
 namespace CL.Core
 {
@@ -15,9 +16,18 @@ namespace CL.Core
             _hostMemory = hostMemory;
         }
 
-        protected override Buffer<T> Build()
+        protected override unsafe Buffer<T> Build()
         {
-            return new Buffer<T>(Api, Context, Flags, _hostMemory);
+            var typeSize = Marshal.SizeOf<T>();
+
+            var handle = _hostMemory.Pin();
+            var id = Api.BufferApi.clCreateBuffer(Context.Id, Flags, (uint)typeSize * (uint)_hostMemory.Length, new IntPtr(handle.Pointer), out var error);
+            if (error != OpenClErrorCode.Success)
+            {
+                handle.Dispose();
+                error.ThrowOnError();
+            }
+            return new Buffer<T>(Api, Context, id, handle);
         }
     }
 }
