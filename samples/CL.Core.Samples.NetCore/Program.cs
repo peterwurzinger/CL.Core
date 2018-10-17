@@ -31,6 +31,10 @@ namespace CL.Core.Samples.NetCore
                 var xBuffer = ctx.CreateBuffer<float>().ByHostMemory(x).AsReadWrite();
                 var yBuffer = ctx.CreateBuffer<float>().ByHostMemory(y).AsReadOnly();
 
+                kernel.SetMemoryArgument(0, xBuffer);
+                kernel.SetMemoryArgument(1, yBuffer);
+                kernel.SetArgument(2, 5f);
+
                 foreach (var device in platform.Devices)
                 {
                     var cq = ctx.CreateCommandQueue(device, false, false);

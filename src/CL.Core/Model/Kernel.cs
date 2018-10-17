@@ -1,5 +1,6 @@
 ﻿using CL.Core.API;
 using System;
+using System.Runtime.InteropServices;
 
 namespace CL.Core.Model
 {
@@ -32,9 +33,30 @@ namespace CL.Core.Model
             NumberOfArguments = infoHelper.GetValue<uint>(KernelInfoParameter.NumberOfArguments);
         }
 
-        public void SetArgument<TArg>(int index, TArg value)
+        public void SetArgument<TArg>(int argIndex, TArg value)
+            where TArg : unmanaged
         {
-            //TODO
+            ValidateArgIndex(argIndex);
+            var handle = GCHandle.Alloc(value, GCHandleType.Pinned);
+            var error = _api.KernelApi.clSetKernelArg(Id, (uint)argIndex, (ulong)Marshal.SizeOf<TArg>(),
+                handle.AddrOfPinnedObject());
+            handle.Free();
+            error.ThrowOnError();
+        }
+
+        public void SetMemoryArgument<TMem>(int argIndex, TMem memoryObject)
+            where TMem : MemoryObject
+        {
+            ValidateArgIndex(argIndex);
+
+            //TODO: Size of memory object, well...¯\_(ツ)_/¯
+            //clSetKernelArg(Id, index, memoryObject.Size(?), memoryObject.Id);
+        }
+
+        private void ValidateArgIndex(int argIndex)
+        {
+            if (argIndex < 0 && argIndex >= NumberOfArguments)
+                throw new ArgumentOutOfRangeException(nameof(argIndex), argIndex, $"The max index for {nameof(argIndex)} is {NumberOfArguments - 1}.");
         }
 
         private void ReleaseUnmanagedResources()
