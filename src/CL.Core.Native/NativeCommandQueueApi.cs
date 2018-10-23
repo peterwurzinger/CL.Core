@@ -24,6 +24,9 @@ namespace CL.Core.Native
             CommandQueueInfoParameter paramName, uint paramValueSize,
             byte[] paramValue, out uint paramValueSizeReturn);
 
+        [DllImport(Constants.DLL, EntryPoint = "clFlush")]
+        public static extern OpenClErrorCode clFlush(IntPtr id);
+
         IntPtr ICommandQueueApi.clCreateCommandQueue(IntPtr context, IntPtr device, CommandQueueProperties properties, out OpenClErrorCode errorCode)
         {
             return clCreateCommandQueue(context, device, properties, out errorCode);
@@ -44,6 +47,11 @@ namespace CL.Core.Native
         {
             return clGetCommandQueueInfo(commandQueue, paramName, paramValueSize, paramValue,
                 out paramValueSizeReturn);
+        }
+
+        OpenClErrorCode ICommandQueueApi.clFlush(IntPtr id)
+        {
+            return clFlush(id);
         }
     }
 }

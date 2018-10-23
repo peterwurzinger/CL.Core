@@ -11,6 +11,7 @@ namespace CL.Core.Native
         public IBufferApi BufferApi { get; }
         public IProgramApi ProgramApi { get; }
         public IKernelApi KernelApi { get; }
+        public IEventApi EventApi { get; }
 
         public NativeOpenClApi()
         {
@@ -21,6 +22,7 @@ namespace CL.Core.Native
             BufferApi = new NativeBufferApi();
             ProgramApi = new NativeProgramApi();
             KernelApi = new NativeKernelApi();
+            EventApi = new NativeEventApi();
         }
     }
 }

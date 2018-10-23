@@ -51,7 +51,12 @@ namespace CL.Core.Samples.NetCore
                     var cq = ctx.CreateCommandQueue(device, false, false);
 
                     xBuffer.Write(cq, x);
-                    kernel.Execute(cq, 1, new[] { (ulong)x.Length });
+                    var evt = kernel.Execute(cq, 1, new[] { (ulong)x.Length });
+
+                    cq.Flush();
+
+                    //This call causes some kind of deadlock - program execution doesn't proceed, Callback isn't called
+                    evt.Completion.Wait();
 
                     var readBuffer = yBuffer.Read(cq);
                     watch.Stop();
@@ -60,6 +65,7 @@ namespace CL.Core.Samples.NetCore
 
                 ctx.Dispose();
                 Console.WriteLine($"{platform.Id} - {platform.Vendor}");
+                Console.ReadLine();
             }
         }
 

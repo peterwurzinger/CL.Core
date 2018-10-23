@@ -12,5 +12,7 @@ namespace CL.Core.API
 
         OpenClErrorCode clGetCommandQueueInfo(IntPtr commandQueue, CommandQueueInfoParameter paramName,
             uint paramValueSize, byte[] paramValue, out uint paramValueSizeReturn);
+
+        OpenClErrorCode clFlush(IntPtr id);
     }
 }

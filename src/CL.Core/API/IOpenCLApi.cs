@@ -9,5 +9,6 @@
         IBufferApi BufferApi { get; }
         IProgramApi ProgramApi { get; }
         IKernelApi KernelApi { get; }
+        IEventApi EventApi { get; }
     }
 }

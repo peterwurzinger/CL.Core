@@ -57,19 +57,22 @@ namespace CL.Core.Model
                 throw new ArgumentOutOfRangeException(nameof(argIndex), argIndex, $"The max index for {nameof(argIndex)} is {NumberOfArguments - 1}.");
         }
 
-        public unsafe void Execute(CommandQueue commandQueue, uint workDimensions, ReadOnlySpan<ulong> globalWorkSize)
+        public unsafe Event Execute(CommandQueue commandQueue, uint workDimensions, ReadOnlyMemory<ulong> globalWorkSize)
         {
             //TODO: Validations, offset, globalWorkSize, localWorkSize - Might want to either introduce overloads or use ReadOnlyMemory<T>
-            //TODO: Make async only? Executing a kernel is inherently asynchronous.
-            
+
             OpenClErrorCode error;
-            fixed (void* ptr = globalWorkSize)
+            IntPtr evt;
+
+            fixed (void* ptr = globalWorkSize.Span)
             {
                 var dims = new UIntPtr(ptr);
                 error = _api.KernelApi.clEnqueueNDRangeKernel(commandQueue.Id, Id, workDimensions, UIntPtr.Zero, dims, UIntPtr.Zero, 0,
-                    IntPtr.Zero, out _);
+                    IntPtr.Zero, out evt);
             }
             error.ThrowOnError();
+
+            return new Event(_api, evt);
         }
 
         private void ReleaseUnmanagedResources()

@@ -30,6 +30,14 @@ namespace CL.Core.Model
             Id = id;
         }
 
+        public void Flush()
+        {
+            if (_disposed)
+                throw new ObjectDisposedException(GetType().FullName);
+
+            _commandQueueApi.clFlush(Id).ThrowOnError();
+        }
+
         public void Dispose()
         {
             Dispose(true);

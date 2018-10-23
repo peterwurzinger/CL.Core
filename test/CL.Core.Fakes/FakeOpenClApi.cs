@@ -22,8 +22,12 @@ namespace CL.Core.Fakes
         public IProgramApi ProgramApi { get; }
         public FakeProgramApi FakeProgramApi { get; }
 
+
         public IKernelApi KernelApi { get; }
         public FakeKernelApi FakeKernelApi { get; }
+
+        public IEventApi EventApi { get; }
+        public FakeEventApi FakeEventApi { get; }
 
         public FakeOpenClApi()
         {
@@ -34,6 +38,7 @@ namespace CL.Core.Fakes
             BufferApi = FakeBufferApi = new FakeBufferApi();
             ProgramApi = FakeProgramApi = new FakeProgramApi();
             KernelApi = FakeKernelApi = new FakeKernelApi();
+            EventApi = FakeEventApi = new FakeEventApi();
         }
     }
 }

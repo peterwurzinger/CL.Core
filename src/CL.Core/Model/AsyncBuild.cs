@@ -25,6 +25,7 @@ namespace CL.Core.Model
             if (devices == null)
                 throw new ArgumentNullException(nameof(devices));
 
+            //TODO: Semaphore might be the wrong choice for monitoring build completion
             _semaphore = new SemaphoreSlim(0, 1);
 
             var callbackDelegate = (AsyncBuildCallbackDelegate)AsyncBuildCallback;

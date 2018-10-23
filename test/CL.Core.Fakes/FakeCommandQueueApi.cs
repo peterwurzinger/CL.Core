@@ -1,5 +1,5 @@
-﻿using System;
-using CL.Core.API;
+﻿using CL.Core.API;
+using System;
 
 namespace CL.Core.Fakes
 {
@@ -39,6 +39,12 @@ namespace CL.Core.Fakes
         {
             paramValueSizeReturn = clGetCommandQueueInfoParamValueSizeReturn;
             return clGetCommandQueueInfoResult ?? 0;
+        }
+
+        public OpenClErrorCode? clFlushResult { get; set; }
+        public OpenClErrorCode clFlush(IntPtr id)
+        {
+            return clFlushResult ?? OpenClErrorCode.Success;
         }
     }
 }
