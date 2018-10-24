@@ -1,10 +1,9 @@
 ﻿using CL.Core.API;
-using CL.Core.Model;
 using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-namespace CL.Core
+namespace CL.Core.Model
 {
 #pragma warning disable CA1716 // Identifiers should not match keywords
     public sealed class Event : IHasId
