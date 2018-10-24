@@ -46,5 +46,11 @@ namespace CL.Core.Fakes
         {
             return clFlushResult ?? OpenClErrorCode.Success;
         }
+
+        public OpenClErrorCode? clFinishResult { get; set; }
+        public OpenClErrorCode clFinish(IntPtr commandQueue)
+        {
+            return clFinishResult ?? OpenClErrorCode.Success;
+        }
     }
 }

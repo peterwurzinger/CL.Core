@@ -25,7 +25,11 @@ namespace CL.Core.Native
             byte[] paramValue, out uint paramValueSizeReturn);
 
         [DllImport(Constants.DLL, EntryPoint = "clFlush")]
-        public static extern OpenClErrorCode clFlush(IntPtr id);
+        public static extern OpenClErrorCode clFlush(IntPtr commandQueue);
+
+
+        [DllImport(Constants.DLL, EntryPoint = "clFinish")]
+        public static extern OpenClErrorCode clFinish(IntPtr commandQueue);
 
         IntPtr ICommandQueueApi.clCreateCommandQueue(IntPtr context, IntPtr device, CommandQueueProperties properties, out OpenClErrorCode errorCode)
         {
@@ -49,9 +53,14 @@ namespace CL.Core.Native
                 out paramValueSizeReturn);
         }
 
-        OpenClErrorCode ICommandQueueApi.clFlush(IntPtr id)
+        OpenClErrorCode ICommandQueueApi.clFlush(IntPtr commandQueue)
         {
-            return clFlush(id);
+            return clFlush(commandQueue);
+        }
+
+        OpenClErrorCode ICommandQueueApi.clFinish(IntPtr commandQueue)
+        {
+            return clFinish(commandQueue);
         }
     }
 }

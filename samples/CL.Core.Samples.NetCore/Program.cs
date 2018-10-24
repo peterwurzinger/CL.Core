@@ -59,9 +59,10 @@ namespace CL.Core.Samples.NetCore
 
                     cq.Flush();
 
-                    executionEvent.Completion.Wait();
+                    executionEvent.WaitComplete();
 
                     var readBuffer = yBuffer.Read(cq);
+                    cq.Finish();
                     watch.Stop();
                     Console.WriteLine($"Wrote, multiplied and read back {workSize} items in {watch.Elapsed.TotalMilliseconds}ms");
                 }

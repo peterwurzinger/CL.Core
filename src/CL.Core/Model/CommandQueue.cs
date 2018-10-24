@@ -38,7 +38,13 @@ namespace CL.Core.Model
             _commandQueueApi.clFlush(Id).ThrowOnError();
         }
 
-        //TODO: Finish
+        public void Finish()
+        {
+            if (_disposed)
+                throw new ObjectDisposedException(GetType().FullName);
+
+            _commandQueueApi.clFinish(Id).ThrowOnError();
+        }
 
         public void Dispose()
         {
@@ -48,10 +54,11 @@ namespace CL.Core.Model
 
         protected virtual void Dispose(bool disposing)
         {
-            //TODO: Call clFlush() & clFinish()?
-
             if (_disposed)
                 return;
+
+            if (disposing)
+                _commandQueueApi.clFinish(Id).ThrowOnError();
 
             ReleaseUnmanagedResources();
             _disposed = true;
