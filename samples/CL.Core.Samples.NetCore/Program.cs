@@ -27,6 +27,7 @@ namespace CL.Core.Samples.NetCore
                 program.BuildAsync(ctx.Devices).Wait();
 
                 var fromBinaries = ctx.CreateProgram(program.Builds.AsBinariesDictionary());
+                fromBinaries.BuildAsync(ctx.Devices).Wait();
 
                 var kernel = program.CreateKernel("SAXPY");
 
