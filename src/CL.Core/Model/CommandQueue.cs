@@ -38,6 +38,8 @@ namespace CL.Core.Model
             _commandQueueApi.clFlush(Id).ThrowOnError();
         }
 
+        //TODO: Finish
+
         public void Dispose()
         {
             Dispose(true);
@@ -46,6 +48,8 @@ namespace CL.Core.Model
 
         protected virtual void Dispose(bool disposing)
         {
+            //TODO: Call clFlush() & clFinish()?
+
             if (_disposed)
                 return;
 

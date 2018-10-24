@@ -21,6 +21,8 @@ namespace CL.Core.Model
 
         private GCHandle _handle;
 
+        //TODO: Introduce a method "Wait()" which evaluates if corresponding CommandQueue has already been flushed and waits for completion
+
         public Event(IOpenClApi api, IntPtr evt)
         {
             _api = api ?? throw new ArgumentNullException(nameof(api));

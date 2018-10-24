@@ -14,15 +14,19 @@ namespace CL.Core.Samples.NetCore
 
             var factory = new PlatformFactory(api);
             var platforms = factory.GetPlatforms();
+
             foreach (var platform in platforms)
             {
+                Console.WriteLine($"{platform.Id} - {platform.Vendor}");
+
                 var ctx = new Context(api, platform.Devices);
                 ctx.Notification += CtxOnNotification;
 
                 var sources = File.ReadAllText("ExampleProgram.cl");
                 var program = ctx.CreateProgram(sources);
-
                 program.BuildAsync(ctx.Devices).Wait();
+
+                var fromBinaries = ctx.CreateProgram(program.Builds.AsBinariesDictionary());
 
                 var kernel = program.CreateKernel("SAXPY");
 
@@ -51,12 +55,11 @@ namespace CL.Core.Samples.NetCore
                     var cq = ctx.CreateCommandQueue(device, false, false);
 
                     xBuffer.Write(cq, x);
-                    var evt = kernel.Execute(cq, 1, new[] { (ulong)x.Length });
+                    var executionEvent = kernel.Execute(cq, 1, new[] { (ulong)x.Length });
 
                     cq.Flush();
 
-                    //This call causes some kind of deadlock - program execution doesn't proceed, Callback isn't called
-                    evt.Completion.Wait();
+                    executionEvent.Completion.Wait();
 
                     var readBuffer = yBuffer.Read(cq);
                     watch.Stop();
@@ -64,7 +67,7 @@ namespace CL.Core.Samples.NetCore
                 }
 
                 ctx.Dispose();
-                Console.WriteLine($"{platform.Id} - {platform.Vendor}");
+                Console.WriteLine("--- Finished ---");
                 Console.ReadLine();
             }
         }
