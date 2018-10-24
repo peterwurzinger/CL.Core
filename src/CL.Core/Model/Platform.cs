@@ -12,31 +12,32 @@ namespace CL.Core.Model
         public string Name { get; }
         public string Vendor { get; }
         public string Profile { get; }
+        public string Version { get; }
         public IReadOnlyCollection<string> Extensions { get; }
         public IReadOnlyCollection<Device> Devices { get; }
 
         internal Platform(IntPtr platformId, IOpenClApi openClApi)
         {
-            var openClApi1 = openClApi ?? throw new ArgumentNullException(nameof(openClApi));
+            if (openClApi == null) throw new ArgumentNullException(nameof(openClApi));
 
-            //TODO: Check if Id exists
             Id = platformId;
-            var platformInfoHelper = new InfoHelper<PlatformInfoParameter>(this, openClApi1.PlatformApi.clGetPlatformInfo);
+            var platformInfoHelper = new InfoHelper<PlatformInfoParameter>(this, openClApi.PlatformApi.clGetPlatformInfo);
             var encoding = Encoding.Default;
 
+            Profile = platformInfoHelper.GetStringValue(PlatformInfoParameter.Profile, encoding);
+            Version = platformInfoHelper.GetStringValue(PlatformInfoParameter.Version, encoding);
             Name = platformInfoHelper.GetStringValue(PlatformInfoParameter.Name, encoding);
             Vendor = platformInfoHelper.GetStringValue(PlatformInfoParameter.Vendor, encoding);
-            Profile = platformInfoHelper.GetStringValue(PlatformInfoParameter.Profile, encoding);
             Extensions = platformInfoHelper.GetStringValue(PlatformInfoParameter.Extensions, encoding).Split(' ');
 
-            var errorCode = openClApi1.DeviceApi.clGetDeviceIDs(platformId, DeviceType.All, 0, null, out var numDevices);
+            var errorCode = openClApi.DeviceApi.clGetDeviceIDs(platformId, DeviceType.All, 0, null, out var numDevices);
             errorCode.ThrowOnError();
 
             var deviceIds = new IntPtr[numDevices];
-            errorCode = openClApi1.DeviceApi.clGetDeviceIDs(platformId, DeviceType.All, numDevices, deviceIds, out _);
+            errorCode = openClApi.DeviceApi.clGetDeviceIDs(platformId, DeviceType.All, numDevices, deviceIds, out _);
             errorCode.ThrowOnError();
 
-            Devices = deviceIds.Select(deviceId => new Device(this, deviceId, openClApi1.DeviceApi)).ToList().AsReadOnly();
+            Devices = deviceIds.Select(deviceId => new Device(this, deviceId, openClApi.DeviceApi)).ToList().AsReadOnly();
         }
 
         public bool Equals(Platform other)
