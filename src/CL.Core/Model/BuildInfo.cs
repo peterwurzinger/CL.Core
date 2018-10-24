@@ -1,5 +1,5 @@
-﻿using System;
-using CL.Core.API;
+﻿using CL.Core.API;
+using System;
 
 namespace CL.Core.Model
 {
@@ -10,11 +10,17 @@ namespace CL.Core.Model
         public string Log { get; }
         public ReadOnlyMemory<byte> Binaries { get; }
 
-        public BuildInfo(BuildStatus status, string log, string options, ReadOnlyMemory<byte> binaries)
+        internal BuildInfo(BuildStatus status, string log, string options, ReadOnlyMemory<byte> binaries)
         {
             Status = status;
             Log = log ?? throw new ArgumentNullException(nameof(log));
             Options = options ?? throw new ArgumentNullException(nameof(options));
+            Binaries = binaries;
+        }
+
+        internal BuildInfo(BuildStatus status, ReadOnlyMemory<byte> binaries)
+        {
+            Status = status;
             Binaries = binaries;
         }
     }

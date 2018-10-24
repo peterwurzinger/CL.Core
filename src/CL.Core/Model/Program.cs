@@ -16,15 +16,44 @@ namespace CL.Core.Model
 
         public IntPtr Id { get; }
         public Context Context { get; }
+        public IReadOnlyCollection<Kernel> Kernels => _attachedKernels;
+        public IReadOnlyDictionary<Device, BuildInfo> Builds => _builds;
 
         private readonly ConcurrentDictionary<Device, BuildInfo> _builds;
         private readonly List<Kernel> _attachedKernels;
 
-        public IReadOnlyCollection<Kernel> Kernels => _attachedKernels;
-        public IReadOnlyDictionary<Device, BuildInfo> Builds => _builds;
-
         private OpenClErrorCode BuildInfoFuncCurried(IntPtr deviceHandle, ProgramBuildInfoParameter name, uint size, IntPtr paramValue, out uint paramValueSizeReturned)
             => _api.ProgramApi.clGetProgramBuildInfo(Id, deviceHandle, name, size, paramValue, out paramValueSizeReturned);
+
+        internal unsafe Program(IOpenClApi api, Context context, IReadOnlyDictionary<Device, ReadOnlyMemory<byte>> deviceBinaries)
+        {
+            _api = api ?? throw new ArgumentNullException(nameof(api));
+            Context = context ?? throw new ArgumentNullException(nameof(context));
+            if (deviceBinaries == null) throw new ArgumentNullException(nameof(deviceBinaries));
+
+            var handles = deviceBinaries.Values.Select(f => f.Pin()).ToArray();
+
+            var binaryStatus = new OpenClErrorCode[deviceBinaries.Count];
+            var id = api.ProgramApi.clCreateProgramWithBinary(context.Id, (uint)deviceBinaries.Count,
+                deviceBinaries.Select(bin => bin.Key.Id).ToArray(),
+                deviceBinaries.Select(bin => (uint)bin.Value.Length).ToArray(),
+                handles.Select(h => new IntPtr(h.Pointer)).ToArray(), binaryStatus, out var errorCode);
+
+            foreach (var hdl in handles)
+                hdl.Dispose();
+
+            errorCode.ThrowOnError();
+            Id = id;
+            _programInfoHelper = new InfoHelper<ProgramInfoParameter>(this, _api.ProgramApi.clGetProgramInfo);
+
+            //TODO: Validate binaryStatus?
+
+            _builds = new ConcurrentDictionary<Device, BuildInfo>(deviceBinaries.Zip(binaryStatus, (binary, status) =>
+                                                new KeyValuePair<Device, BuildInfo>(binary.Key, new BuildInfo(status == OpenClErrorCode.Success ? BuildStatus.Success : BuildStatus.Error, binary.Value))
+                            ));
+
+            _attachedKernels = new List<Kernel>();
+        }
 
         internal Program(IOpenClApi api, Context context, string[] sources)
         {

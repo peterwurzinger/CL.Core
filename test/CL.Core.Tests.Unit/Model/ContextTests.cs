@@ -198,7 +198,7 @@ namespace CL.Core.Tests.Unit.Model
             var device = new Device(platform, new IntPtr(1), FakeOpenClApi.DeviceApi);
             var ctx = new Context(FakeOpenClApi, new[] { device });
 
-            Assert.Throws<ArgumentNullException>("sources", () => ctx.CreateProgram(null));
+            Assert.Throws<ArgumentNullException>("sources", () => ctx.CreateProgram((string[]) null));
         }
 
         [Fact]

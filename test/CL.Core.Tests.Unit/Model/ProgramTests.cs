@@ -34,7 +34,7 @@ namespace CL.Core.Tests.Unit.Model
         [Fact]
         public void CtorShouldThrowExceptionIfSourcesNull()
         {
-            Assert.Throws<ArgumentNullException>("sources", () => new Program(FakeOpenClApi, _context, null));
+            Assert.Throws<ArgumentNullException>("sources", () => new Program(FakeOpenClApi, _context, null as string[]));
         }
 
         [Fact]

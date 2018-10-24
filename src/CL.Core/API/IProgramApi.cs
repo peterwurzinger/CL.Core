@@ -5,7 +5,9 @@ namespace CL.Core.API
     public interface IProgramApi
     {
         IntPtr clCreateProgramWithSource(IntPtr context, uint count, string[] strings, uint[] lengths, out OpenClErrorCode errorCodeRet);
-        //TODO: Binary?
+
+        IntPtr clCreateProgramWithBinary(IntPtr context, uint numDevices, IntPtr[] deviceList, uint[] lengths,
+            IntPtr[] binaries, OpenClErrorCode[] binaryStatus, out OpenClErrorCode errorCodeRet);
 
         OpenClErrorCode clBuildProgram(IntPtr program, uint numDevices, IntPtr[] devices, string options,
             IntPtr pfnNotify, IntPtr userData);

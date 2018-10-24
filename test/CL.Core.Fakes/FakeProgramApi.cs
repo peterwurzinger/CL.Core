@@ -32,6 +32,18 @@ namespace CL.Core.Fakes
             return id;
         }
 
+        public OpenClErrorCode? clCreateProgramWithBinaryErrorCodeRet { get; set; }
+        public OpenClErrorCode[] clCreateProgramWithBinaryBinaryStatus { get; set; }
+        public IntPtr? clCreateProgramWithBinaryResult { get; set; }
+
+        public IntPtr clCreateProgramWithBinary(IntPtr context, uint numDevices, IntPtr[] deviceList, uint[] lengths,
+            IntPtr[] binaries, OpenClErrorCode[] binaryStatus, out OpenClErrorCode errorCodeRet)
+        {
+            binaryStatus = clCreateProgramWithBinaryBinaryStatus ?? new OpenClErrorCode[deviceList.Length];
+            errorCodeRet = clCreateProgramWithBinaryErrorCodeRet ?? OpenClErrorCode.Success;
+            return clCreateProgramWithBinaryResult ?? new IntPtr(1);
+        }
+
         public OpenClErrorCode? clBuildProgramReturn { get; set; }
         public OpenClErrorCode clBuildProgram(IntPtr program, uint numDevices, IntPtr[] devices, string options, IntPtr pfnNotify,
             IntPtr userData)

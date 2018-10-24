@@ -94,6 +94,16 @@ namespace CL.Core.Model
             return new BufferStubConfiguration<T>(_openClApi, this, b => _attachedMemoryObjects.Add(b));
         }
 
+        public Program CreateProgram(IReadOnlyDictionary<Device, ReadOnlyMemory<byte>> deviceBinaries)
+        {
+            if (deviceBinaries == null)
+                throw new ArgumentNullException(nameof(deviceBinaries));
+
+            var program = new Program(_openClApi, this, deviceBinaries);
+            _attachedProgramObjects.Add(program);
+            return program;
+        }
+
         public Program CreateProgram(params string[] sources)
         {
             if (_disposed)

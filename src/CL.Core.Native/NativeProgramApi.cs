@@ -10,6 +10,10 @@ namespace CL.Core.Native
         public static extern IntPtr clCreateProgramWithSource(IntPtr context, uint count, string[] strings, uint[] lengths,
             out OpenClErrorCode errorCodeRet);
 
+        [DllImport(Constants.DLL, EntryPoint = "clCreateProgramWithBinary")]
+        public static extern IntPtr clCreateProgramWithBinary(IntPtr context, uint numDevices, IntPtr[] deviceList, uint[] lengths,
+            IntPtr[] binaries, OpenClErrorCode[] binaryStatus, out OpenClErrorCode errorCodeRet);
+
         [DllImport(Constants.DLL, EntryPoint = "clGetProgramInfo")]
         public static extern OpenClErrorCode clGetProgramInfo(IntPtr program,
             ProgramInfoParameter paramName, uint paramValueSize,
@@ -35,6 +39,12 @@ namespace CL.Core.Native
             out OpenClErrorCode errorCodeRet)
         {
             return clCreateProgramWithSource(context, count, strings, lengths, out errorCodeRet);
+        }
+
+        IntPtr IProgramApi.clCreateProgramWithBinary(IntPtr context, uint numDevices, IntPtr[] deviceList, uint[] lengths,
+            IntPtr[] binaries, OpenClErrorCode[] binaryStatus, out OpenClErrorCode errorCodeRet)
+        {
+            return clCreateProgramWithBinary(context, numDevices, deviceList, lengths, binaries, binaryStatus, out errorCodeRet);
         }
 
         OpenClErrorCode IProgramApi.clGetProgramInfo(IntPtr program, ProgramInfoParameter paramName, uint paramValueSize, IntPtr paramValue,
