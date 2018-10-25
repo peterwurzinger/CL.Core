@@ -104,12 +104,8 @@ namespace CL.Core.Model
 
             MaxWorkItemSizes = _deviceInfoHelper.GetValues<ulong>(DeviceInfoParameter.MaxWorkItemSizes).ToArray();
 
-            //TODO: Get bit width of size_t - could vary between uchar and int64 ... -.- Correlation to AddressBits - property?
-            //var workItemSizeBytes = InfoHelper.GetInfo(deviceApi.clGetDeviceInfo, deviceId, DeviceInfoParameter.MaxWorkItemSizes);
-            //MaxWorkItemSizes = new uint[MaxWorkItemDimensions];
-
-            //for (var i = 0; i < MaxWorkItemDimensions; i++)
-            //    MaxWorkItemSizes[i] = BitConverter.ToUInt32(workItemSizeBytes.Skip(i * 8).Take(8).ToArray(), 0);
+            //TODO: Get bit width of size_t from AddressBits - property
+            //From enqueueNDRangeKernel: The sizeof(size_t) for a device can be determined using CL_DEVICE_ADDRESS_BITS
 
             MaxClockFrequency = _deviceInfoHelper.GetValue<uint>(DeviceInfoParameter.MaxClockFrequency);
             GlobalMemorySize = _deviceInfoHelper.GetValue<uint>(DeviceInfoParameter.GlobalMemSize);
