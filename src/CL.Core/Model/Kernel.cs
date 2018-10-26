@@ -1,5 +1,8 @@
 ﻿using CL.Core.API;
 using System;
+using System.Buffers;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace CL.Core.Model
@@ -57,19 +60,80 @@ namespace CL.Core.Model
                 throw new ArgumentOutOfRangeException(nameof(argIndex), argIndex, $"The max index for {nameof(argIndex)} is {NumberOfArguments - 1}.");
         }
 
-        public unsafe Event Execute(CommandQueue commandQueue, uint workDimensions, ReadOnlyMemory<ulong> globalWorkSize)
+        public Event Execute(CommandQueue commandQueue, params GlobalWorkParameters[] workSize)
         {
-            //TODO: Validations, offset, globalWorkSize, localWorkSize - Might want to either introduce overloads or use ReadOnlyMemory<T>
+            var globalWorkSize = workSize.Select(w => w.GlobalWorkSize).ToArray();
+            var globalWorkOffset = workSize.Select(w => w.GlobalWorkOffset).ToArray();
 
-            OpenClErrorCode error;
-            IntPtr evt;
+            return Execute(commandQueue, (uint)workSize.Length, globalWorkSize, globalWorkOffset);
+        }
 
-            fixed (void* ptr = globalWorkSize.Span)
+        public Event Execute(CommandQueue commandQueue, params GlobalLocalWorkParameters[] globalLocalWorkSize)
+        {
+            var globalWorkSize = globalLocalWorkSize.Select(w => w.GlobalWorkSize).ToArray();
+            var globalWorkOffset = globalLocalWorkSize.Select(w => w.GlobalWorkOffset).ToArray();
+            var localWorkSize = globalLocalWorkSize.Select(w => w.LocalWorkSize).ToArray();
+
+            return Execute(commandQueue, (uint)globalLocalWorkSize.Length, globalWorkSize, globalWorkOffset, localWorkSize);
+        }
+
+        private unsafe Event Execute(CommandQueue commandQueue, uint workDimensions, uint[] globalWorkSize, uint[] globalWorkOffset, uint[] localWorkSize = null)
+        {
+            if (workDimensions == 0)
+                throw new ArgumentOutOfRangeException(nameof(workDimensions), workDimensions, "Work dimensions must be greater than 0.");
+
+            if (workDimensions > commandQueue.Device.MaxWorkItemDimensions)
+                throw new ArgumentOutOfRangeException(nameof(workDimensions), workDimensions, $"Exceeding devices maximum work item dimensions of {commandQueue.Device.MaxWorkItemDimensions}");
+
+            var globalWorkSizeArray = globalWorkSize.ToArray();
+
+            var dimensionsWorkSize = globalWorkSizeArray.Zip(globalWorkOffset.ToArray(), (size, offset) => size + offset).ToArray();
+            var maxAddress = Math.Pow(2, commandQueue.Device.AddressBits) - 1;
+
+            var dimensionWorkSizeExceptions = new List<Exception>();
+            for (var i = 0; i < dimensionsWorkSize.Length; i++)
             {
-                var dims = new UIntPtr(ptr);
-                error = _api.KernelApi.clEnqueueNDRangeKernel(commandQueue.Id, Id, workDimensions, UIntPtr.Zero, dims, UIntPtr.Zero, 0,
-                    IntPtr.Zero, out evt);
+                if (dimensionsWorkSize[i] > maxAddress)
+                    dimensionWorkSizeExceptions.Add(new ArgumentException($"Work size + offset of dimension {i} must not exceed devices address width of {maxAddress}"));
             }
+            if (dimensionWorkSizeExceptions.Any())
+                throw new AggregateException(dimensionWorkSizeExceptions);
+
+            var handles = new List<MemoryHandle>();
+
+            var globalWorkSizeHandle = globalWorkSize.AsMemory().Pin();
+            handles.Add(globalWorkSizeHandle);
+            var globalWorkSizePtr = new UIntPtr(globalWorkSizeHandle.Pointer);
+
+            var globalWorkOffsetHandle = globalWorkOffset.AsMemory().Pin();
+            handles.Add(globalWorkOffsetHandle);
+            var globalWorkOffsetPtr = new UIntPtr(globalWorkOffsetHandle.Pointer);
+
+            var localWorkSizePtr = UIntPtr.Zero;
+            if (localWorkSize != null)
+            {
+                var localWorkSizeArray = localWorkSize.ToArray();
+                var workItemsPerWorkGroup = localWorkSizeArray.Aggregate(1L, (workSize, dimWorkSize) => workSize * dimWorkSize);
+                if (workItemsPerWorkGroup > commandQueue.Device.MaxWorkGroupSize)
+                    throw new ArgumentException($"Total number of work-items in a work-group must not exceed devices maximum work-group size of {commandQueue.Device.MaxWorkGroupSize}.");
+
+                var workItemSizesExceptions = new List<Exception>();
+                for (var i = 0; i < dimensionsWorkSize.Length; i++)
+                {
+                    if (localWorkSizeArray[i] > commandQueue.Device.MaxWorkItemSizes[i])
+                        workItemSizesExceptions.Add(new ArgumentException($"Number of work-items in a work-group in dimension {i} must not exceed devices maximum of {commandQueue.Device.MaxWorkItemSizes[i]}"));
+                }
+                if (workItemSizesExceptions.Any())
+                    throw new AggregateException(workItemSizesExceptions);
+
+                var localWorkSizeHandle = localWorkSize.AsMemory().Pin();
+                handles.Add(localWorkSizeHandle);
+                localWorkSizePtr = new UIntPtr(localWorkSizeHandle.Pointer);
+            }
+
+            var error = _api.KernelApi.clEnqueueNDRangeKernel(commandQueue.Id, Id, workDimensions, globalWorkOffsetPtr,
+                globalWorkSizePtr, localWorkSizePtr, 0, IntPtr.Zero, out var evt);
+            handles.ForEach(m => m.Dispose());
             error.ThrowOnError();
 
             return new Event(_api, evt);

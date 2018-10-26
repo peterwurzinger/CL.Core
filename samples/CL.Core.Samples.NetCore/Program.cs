@@ -26,12 +26,12 @@ namespace CL.Core.Samples.NetCore
                 var program = ctx.CreateProgram(sources);
                 program.BuildAsync(ctx.Devices).Wait();
 
-                var fromBinaries = ctx.CreateProgram(program.Builds.AsBinariesDictionary());
-                fromBinaries.BuildAsync(ctx.Devices).Wait();
+                //var fromBinaries = ctx.CreateProgram(program.Builds.AsBinariesDictionary());
+                //fromBinaries.BuildAsync(ctx.Devices).Wait();
 
                 var kernel = program.CreateKernel("SAXPY");
 
-                const long workSize = 200_000_000;
+                const long workSize = 100_000_000;
 
                 var x = new float[workSize];
                 var rnd = new Random();
@@ -50,13 +50,15 @@ namespace CL.Core.Samples.NetCore
                 var watch = new Stopwatch();
                 foreach (var device in platform.Devices)
                 {
+                    Console.WriteLine($"\t{device.Name}");
                     watch.Reset();
                     watch.Start();
 
                     var cq = ctx.CreateCommandQueue(device, false, false);
 
                     xBuffer.Write(cq, x);
-                    var executionEvent = kernel.Execute(cq, 1, new[] { (ulong)x.Length });
+
+                    var executionEvent = kernel.Execute(cq, new GlobalWorkParameters((uint)x.Length));
 
                     cq.Flush();
 
@@ -69,9 +71,10 @@ namespace CL.Core.Samples.NetCore
                 }
 
                 ctx.Dispose();
-                Console.WriteLine("--- Finished ---");
-                Console.ReadLine();
             }
+
+            Console.WriteLine("--- Finished ---");
+            Console.ReadLine();
         }
 
         private static void CtxOnNotification(object sender, ContextNotificationEventArgs e)
