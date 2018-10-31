@@ -8,8 +8,8 @@ namespace CL.Core.Fakes
 
         public FakeDeviceApi()
         {
-            //Return at least 4 bytes to make result interpretable as numeric value
-            clGetDeviceInfoParamValueSizeRet = 4;
+            //Return at least 8 bytes to make result interpretable as every numeric type up to (u)long
+            clGetDeviceInfoParamValueSizeRet = 8;
         }
 
         public OpenClErrorCode? clGetDeviceIDsResult { get; set; }
