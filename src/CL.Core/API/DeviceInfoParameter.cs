@@ -9,7 +9,7 @@
         MaxWorkItemDimensions = 0b1_0000_0000_0011,
         MaxWorkGroupSize = 0b1_0000_0000_0100,
         MaxWorkItemSizes = 0b1_0000_0000_0101,
-        
+
         PreferredVectorWidthChar = 0b1_0000_0000_0110,
         PreferredVectorWidthShort = 0b1_0000_0000_0111,
         PreferredVectorWidthInt = 0b1_0000_0000_1000,
@@ -45,10 +45,11 @@
 
         ErrorCorrectionSupport = 0b1_0000_0010_0100,
         ProfilingTimerResolution = 0b1_0000_0010_0101,
-        EndianLittle = 0b1_0000_0010_01110,
+        // ReSharper disable once IdentifierTypo
+        EndianLittle = 0b1_0000_0010_0110,
         DeviceAvailable = 0b1_0000_0010_0111,
         CompilerAvailable = 0b1_0000_0010_1000,
-        ExcutionCapabilities = 0b1_0000_0010_1001,
+        ExecutionCapabilities = 0b1_0000_0010_1001,
         QueueProperties = 0b1_0000_0010_1010,
         Name = 0b1_0000_0010_1011,
         Vendor = 0b1_0000_0010_1100,
