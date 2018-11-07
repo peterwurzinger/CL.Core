@@ -115,7 +115,7 @@ namespace CL.Core.Model
         public uint MaxSamplers { get; }
         public uint MemBaseAddressAlign { get; }
         public uint MinDataTypeAlignSize { get; }
-        public FloatConfiguration SinglePrecisionFloatConfiguration { get; }
+        public FloatConfigurations SinglePrecisionFloatConfigurations { get; }
         public CacheType GlobalMemCacheType { get; }
         public uint GlobalMemCacheLineSize { get; }
         public ulong GlobalMemCacheSize { get; }
@@ -130,8 +130,8 @@ namespace CL.Core.Model
         public ExecutionCapabilities ExecutionCapabilities { get; }
         public CommandQueueProperties QueueProperties { get; }
         public string DriverVersion { get; }
-        public FloatConfiguration? DoublePrecisionFloatConfiguration { get; }
-        public FloatConfiguration? HalfPrecisionFloatConfiguration { get; }
+        public FloatConfigurations? DoublePrecisionFloatConfigurations { get; }
+        public FloatConfigurations? HalfPrecisionFloatConfigurations { get; }
         public uint PreferredVectorWidthHalf { get; }
         public bool HostUnifiedMemory { get; }
         public string OpenClCVersion { get; }
@@ -214,15 +214,15 @@ namespace CL.Core.Model
             ExecutionCapabilities = _deviceInfoHelper.GetValue<ExecutionCapabilities>(DeviceInfoParameter.ExecutionCapabilities);
             QueueProperties = _deviceInfoHelper.GetValue<CommandQueueProperties>(DeviceInfoParameter.QueueProperties);
 
-            SinglePrecisionFloatConfiguration = _deviceInfoHelper.GetValue<FloatConfiguration>(DeviceInfoParameter.SingleFpConfig);
+            SinglePrecisionFloatConfigurations = _deviceInfoHelper.GetValue<FloatConfigurations>(DeviceInfoParameter.SingleFpConfig);
 
             //Is double precision supported
             if (NativeVectorWidthDouble != 0)
-                DoublePrecisionFloatConfiguration = _deviceInfoHelper.GetValue<FloatConfiguration>(DeviceInfoParameter.DoubleFpConfig);
+                DoublePrecisionFloatConfigurations = _deviceInfoHelper.GetValue<FloatConfigurations>(DeviceInfoParameter.DoubleFpConfig);
 
             //Is half precision supported
             if (NativeVectorWidthHalf != 0)
-                HalfPrecisionFloatConfiguration = _deviceInfoHelper.GetValue<FloatConfiguration>(DeviceInfoParameter.HalfFpConfig);
+                HalfPrecisionFloatConfigurations = _deviceInfoHelper.GetValue<FloatConfigurations>(DeviceInfoParameter.HalfFpConfig);
 
         }
 

@@ -3,7 +3,7 @@
 namespace CL.Core.API
 {
     [Flags]
-    public enum FloatConfiguration
+    public enum FloatConfigurations
     {
         Denorm = 0b_0000_0001,
         SupportsInfinityAndNaN = 0b_0000_0010,
