@@ -10,15 +10,19 @@ namespace CL.Core.API
         public delegate OpenClErrorCode GetInfoFunc(IntPtr handle, TParameter parameterName, uint valueSize,
             IntPtr paramValue, out uint parameterValueSizeReturn);
 
-
         private readonly IHasId _entity;
         private readonly GetInfoFunc _infoFunc;
+        private readonly Encoding _encoding;
 
-        internal InfoHelper(IHasId entity, GetInfoFunc infoFunc)
+        internal InfoHelper(IHasId entity, GetInfoFunc infoFunc, Encoding encoding)
         {
             _entity = entity ?? throw new ArgumentNullException(nameof(entity));
             _infoFunc = infoFunc ?? throw new ArgumentNullException(nameof(infoFunc));
+            _encoding = encoding ?? throw new ArgumentNullException(nameof(encoding));
         }
+
+        internal InfoHelper(IHasId entity, GetInfoFunc infoFunc)
+            : this(entity, infoFunc, Encoding.UTF8) { }
 
         public unsafe TValue GetValue<TValue>(TParameter parameterName)
             where TValue : unmanaged
@@ -51,7 +55,7 @@ namespace CL.Core.API
             return memory;
         }
 
-        public unsafe string GetStringValue(TParameter parameterName, Encoding encoding)
+        public unsafe string GetStringValue(TParameter parameterName)
         {
             var error = _infoFunc(_entity.Id, parameterName, 0, IntPtr.Zero, out var paramSize);
             error.ThrowOnError();
@@ -60,7 +64,7 @@ namespace CL.Core.API
             error = _infoFunc(_entity.Id, parameterName, paramSize, (IntPtr)stackMemory, out _);
             error.ThrowOnError();
 
-            return encoding.GetString(stackMemory, (int)paramSize);
+            return _encoding.GetString(stackMemory, (int)paramSize)?.TrimEnd((char)0);
         }
     }
 }

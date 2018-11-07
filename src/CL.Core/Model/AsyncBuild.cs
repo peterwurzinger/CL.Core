@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CL.Core.Model
@@ -60,10 +59,9 @@ namespace CL.Core.Model
             foreach (var device in _devices)
             {
                 var buildInfoHelper = new InfoHelper<ProgramBuildInfoParameter>(device, BuildInfoFuncCurried);
-                var encoding = Encoding.Default;
                 var status = buildInfoHelper.GetValue<BuildStatus>(ProgramBuildInfoParameter.Status);
-                var log = buildInfoHelper.GetStringValue(ProgramBuildInfoParameter.Log, encoding);
-                var options = buildInfoHelper.GetStringValue(ProgramBuildInfoParameter.Options, encoding);
+                var log = buildInfoHelper.GetStringValue(ProgramBuildInfoParameter.Log);
+                var options = buildInfoHelper.GetStringValue(ProgramBuildInfoParameter.Options);
 
                 if (status == BuildStatus.Error)
                     buildErrors.Add(new ProgramBuildException(_program, device, log));

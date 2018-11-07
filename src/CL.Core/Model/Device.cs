@@ -1,7 +1,6 @@
 ﻿using CL.Core.API;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace CL.Core.Model
 {
@@ -146,8 +145,7 @@ namespace CL.Core.Model
             Id = deviceId;
             _deviceInfoHelper = new InfoHelper<DeviceInfoParameter>(this, _deviceApi.clGetDeviceInfo);
 
-            var encoding = Encoding.Default;
-            Name = _deviceInfoHelper.GetStringValue(DeviceInfoParameter.Name, encoding);
+            Name = _deviceInfoHelper.GetStringValue(DeviceInfoParameter.Name);
             Type = _deviceInfoHelper.GetValue<DeviceType>(DeviceInfoParameter.Type);
             VendorId = _deviceInfoHelper.GetValue<uint>(DeviceInfoParameter.VendorId);
             MaxComputeUnits = _deviceInfoHelper.GetValue<uint>(DeviceInfoParameter.MaxComputeUnits);
@@ -163,7 +161,7 @@ namespace CL.Core.Model
             GlobalMemorySize = _deviceInfoHelper.GetValue<ulong>(DeviceInfoParameter.GlobalMemSize);
             MaxConstantArgs = _deviceInfoHelper.GetValue<uint>(DeviceInfoParameter.MaxConstantArgs);
             AddressBits = _deviceInfoHelper.GetValue<uint>(DeviceInfoParameter.AddressBits);
-            Vendor = _deviceInfoHelper.GetStringValue(DeviceInfoParameter.Vendor, encoding);
+            Vendor = _deviceInfoHelper.GetStringValue(DeviceInfoParameter.Vendor);
 
             PreferredVectorWidthChar = _deviceInfoHelper.GetValue<uint>(DeviceInfoParameter.PreferredVectorWidthChar);
             PreferredVectorWidthDouble = _deviceInfoHelper.GetValue<uint>(DeviceInfoParameter.PreferredVectorWidthDouble);
@@ -208,8 +206,8 @@ namespace CL.Core.Model
             ErrorCorrectionSupport = _deviceInfoHelper.GetValue<bool>(DeviceInfoParameter.ErrorCorrectionSupport);
             ProfilingTimerResolution = _deviceInfoHelper.GetValue<ulong>(DeviceInfoParameter.ProfilingTimerResolution);
             EndianLittle = _deviceInfoHelper.GetValue<bool>(DeviceInfoParameter.EndianLittle);
-            DriverVersion = _deviceInfoHelper.GetStringValue(DeviceInfoParameter.DriverVersion, encoding);
-            OpenClCVersion = _deviceInfoHelper.GetStringValue(DeviceInfoParameter.OpenClCVersion, encoding);
+            DriverVersion = _deviceInfoHelper.GetStringValue(DeviceInfoParameter.DriverVersion);
+            OpenClCVersion = _deviceInfoHelper.GetStringValue(DeviceInfoParameter.OpenClCVersion);
             HostUnifiedMemory = _deviceInfoHelper.GetValue<bool>(DeviceInfoParameter.HostUnifiedMemory);
             ExecutionCapabilities = _deviceInfoHelper.GetValue<ExecutionCapabilities>(DeviceInfoParameter.ExecutionCapabilities);
             QueueProperties = _deviceInfoHelper.GetValue<CommandQueueProperties>(DeviceInfoParameter.QueueProperties);

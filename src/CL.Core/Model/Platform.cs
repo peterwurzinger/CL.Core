@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace CL.Core.Model
 {
@@ -24,13 +23,12 @@ namespace CL.Core.Model
 
             Id = platformId;
             var platformInfoHelper = new InfoHelper<PlatformInfoParameter>(this, openClApi.PlatformApi.clGetPlatformInfo);
-            var encoding = Encoding.Default;
 
-            Profile = platformInfoHelper.GetStringValue(PlatformInfoParameter.Profile, encoding);
-            Version = platformInfoHelper.GetStringValue(PlatformInfoParameter.Version, encoding);
-            Name = platformInfoHelper.GetStringValue(PlatformInfoParameter.Name, encoding);
-            Vendor = platformInfoHelper.GetStringValue(PlatformInfoParameter.Vendor, encoding);
-            Extensions = platformInfoHelper.GetStringValue(PlatformInfoParameter.Extensions, encoding).Split(' ');
+            Profile = platformInfoHelper.GetStringValue(PlatformInfoParameter.Profile);
+            Version = platformInfoHelper.GetStringValue(PlatformInfoParameter.Version);
+            Name = platformInfoHelper.GetStringValue(PlatformInfoParameter.Name);
+            Vendor = platformInfoHelper.GetStringValue(PlatformInfoParameter.Vendor);
+            Extensions = platformInfoHelper.GetStringValue(PlatformInfoParameter.Extensions).Split(' ');
 
             var errorCode = openClApi.DeviceApi.clGetDeviceIDs(platformId, DeviceType.All, 0, null, out var numDevices);
             errorCode.ThrowOnError();
