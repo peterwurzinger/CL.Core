@@ -74,8 +74,7 @@ namespace CL.Core.Model
             BuildAsync(devices).GetAwaiter().GetResult();
         }
 
-        //TODO: Compilation options & optimizations
-        public Task BuildAsync(IReadOnlyCollection<Device> devices)
+        public Task BuildAsync(IReadOnlyCollection<Device> devices, params string[] options)
         {
             if (_disposed)
                 throw new ObjectDisposedException(GetType().FullName);
@@ -84,7 +83,7 @@ namespace CL.Core.Model
                 throw new ArgumentNullException(nameof(devices));
 
             _builds = null;
-            var build = new AsyncBuild(_api.ProgramApi, this, devices);
+            var build = new AsyncBuild(_api.ProgramApi, this, devices, options ?? Array.Empty<string>());
 
             return build.WaitAsync().ContinueWith(t => { _builds = t.Result; }, TaskScheduler.Current);
         }

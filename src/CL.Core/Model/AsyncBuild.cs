@@ -10,12 +10,11 @@ namespace CL.Core.Model
 {
     internal class AsyncBuild
     {
-        public Program Program { get; }
-
         private delegate void AsyncBuildCallbackDelegate(IntPtr program, IntPtr userData);
         private OpenClErrorCode BuildInfoFuncCurried(IntPtr deviceHandle, ProgramBuildInfoParameter name, uint size, IntPtr paramValue, out uint paramValueSizeReturned)
-            => _programApi.clGetProgramBuildInfo(Program.Id, deviceHandle, name, size, paramValue, out paramValueSizeReturned);
+            => _programApi.clGetProgramBuildInfo(_program.Id, deviceHandle, name, size, paramValue, out paramValueSizeReturned);
 
+        private readonly Program _program;
         private readonly TaskCompletionSource<Dictionary<Device, BuildInfo>> _taskCompletionSource;
         private readonly IProgramApi _programApi;
         private readonly IReadOnlyCollection<Device> _devices;
@@ -23,22 +22,25 @@ namespace CL.Core.Model
 
         private GCHandle _delegateHandle;
 
-        internal AsyncBuild(IProgramApi programApi, Program program, IReadOnlyCollection<Device> devices)
+        internal AsyncBuild(IProgramApi programApi, Program program, IReadOnlyCollection<Device> devices, string[] options)
         {
             _programApi = programApi ?? throw new ArgumentNullException(nameof(programApi));
-            Program = program ?? throw new ArgumentNullException(nameof(program));
+            _program = program ?? throw new ArgumentNullException(nameof(program));
             _devices = devices ?? throw new ArgumentNullException(nameof(devices));
+            if (options == null) throw new ArgumentNullException(nameof(options));
 
             _taskCompletionSource = new TaskCompletionSource<Dictionary<Device, BuildInfo>>();
-            _programInfoHelper = new InfoHelper<ProgramInfoParameter>(Program, _programApi.clGetProgramInfo);
+            _programInfoHelper = new InfoHelper<ProgramInfoParameter>(_program, _programApi.clGetProgramInfo);
 
             var callbackDelegate = (AsyncBuildCallbackDelegate)AsyncBuildCallback;
             _delegateHandle = GCHandle.Alloc(callbackDelegate);
             var fp = Marshal.GetFunctionPointerForDelegate(callbackDelegate);
 
-            //Ignoring errors returned by this call intentionally, since they will get handled on callback
-            programApi.clBuildProgram(program.Id, (uint)devices.Count, devices.Select(d => d.Id).ToArray(), string.Empty, fp, IntPtr.Zero);
+            var optionsString = string.Join(" ", options);
 
+            var error = programApi.clBuildProgram(program.Id, (uint)devices.Count, devices.Select(d => d.Id).ToArray(), optionsString, fp, IntPtr.Zero);
+            if (error != OpenClErrorCode.Success)
+                _taskCompletionSource.SetException(new ClCoreException(error));
         }
 
         public Task<Dictionary<Device, BuildInfo>> WaitAsync()
@@ -64,7 +66,7 @@ namespace CL.Core.Model
                 var options = buildInfoHelper.GetStringValue(ProgramBuildInfoParameter.Options, encoding);
 
                 if (status == BuildStatus.Error)
-                    buildErrors.Add(new ProgramBuildException(Program, device, log));
+                    buildErrors.Add(new ProgramBuildException(_program, device, log));
 
                 builds[device] = new BuildInfo(status, log, options, availableBinaries[device.Id]);
             }
@@ -89,7 +91,7 @@ namespace CL.Core.Model
             OpenClErrorCode error;
             fixed (void* ptr = handles.Select(handle => new IntPtr(handle.Pointer)).ToArray())
             {
-                error = _programApi.clGetProgramInfo(Program.Id, ProgramInfoParameter.Binaries, (uint)(sizeof(IntPtr) * binarySizes.Length), new IntPtr(ptr), out _);
+                error = _programApi.clGetProgramInfo(_program.Id, ProgramInfoParameter.Binaries, (uint)(sizeof(IntPtr) * binarySizes.Length), new IntPtr(ptr), out _);
             }
 
             //Unpin the Memory handles
