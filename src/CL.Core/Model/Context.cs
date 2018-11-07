@@ -27,8 +27,7 @@ namespace CL.Core.Model
         private GCHandle _notificationHandle;
         private bool _disposed;
 
-        //TODO: Extract as factory-method in platform-class, since contexts spanning multiple platforms is not supported anyway 
-        public Context(IOpenClApi openClApi, IReadOnlyCollection<Device> devices)
+        internal Context(IOpenClApi openClApi, IReadOnlyCollection<Device> devices)
         {
             _openClApi = openClApi ?? throw new ArgumentNullException(nameof(openClApi));
             if (devices == null) throw new ArgumentNullException(nameof(devices));

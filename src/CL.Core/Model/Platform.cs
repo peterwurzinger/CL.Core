@@ -16,9 +16,11 @@ namespace CL.Core.Model
         public IReadOnlyCollection<string> Extensions { get; }
         public IReadOnlyCollection<Device> Devices { get; }
 
+        private readonly IOpenClApi _openClApi;
+
         internal Platform(IntPtr platformId, IOpenClApi openClApi)
         {
-            if (openClApi == null) throw new ArgumentNullException(nameof(openClApi));
+            _openClApi = openClApi ?? throw new ArgumentNullException(nameof(openClApi));
 
             Id = platformId;
             var platformInfoHelper = new InfoHelper<PlatformInfoParameter>(this, openClApi.PlatformApi.clGetPlatformInfo);
@@ -38,6 +40,11 @@ namespace CL.Core.Model
             errorCode.ThrowOnError();
 
             Devices = deviceIds.Select(deviceId => new Device(this, deviceId, openClApi.DeviceApi)).ToList().AsReadOnly();
+        }
+
+        public Context CreateContext(IReadOnlyCollection<Device> devices)
+        {
+            return new Context(_openClApi, devices);
         }
 
         public bool Equals(Platform other)

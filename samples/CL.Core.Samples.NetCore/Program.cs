@@ -19,7 +19,7 @@ namespace CL.Core.Samples.NetCore
             {
                 Console.WriteLine($"{platform.Id} - {platform.Vendor}");
 
-                var ctx = new Context(api, platform.Devices);
+                var ctx = platform.CreateContext(platform.Devices);
                 ctx.Notification += CtxOnNotification;
 
                 var sources = File.ReadAllText("ExampleProgram.cl");
