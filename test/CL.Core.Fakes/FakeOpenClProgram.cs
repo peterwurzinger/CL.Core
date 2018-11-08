@@ -7,11 +7,11 @@ namespace CL.Core.Fakes
     public class FakeOpenClProgram
     {
         public IntPtr ContextId { get; }
-        public string[] Sources { get; }
+        public IReadOnlyCollection<string> Sources { get; }
         public IDictionary<IntPtr, byte[]> Binaries { get; }
         public bool Released { get; internal set; }
 
-        public FakeOpenClProgram(IntPtr contextId, string[] sources)
+        public FakeOpenClProgram(IntPtr contextId, IReadOnlyCollection<string> sources)
         {
             ContextId = contextId;
             Sources = sources;

@@ -34,7 +34,9 @@ namespace CL.Core.Fakes
         }
 
         public OpenClErrorCode? clCreateProgramWithBinaryErrorCodeRet { get; set; }
+#pragma warning disable CA1819 // Properties should not return arrays
         public OpenClErrorCode[] clCreateProgramWithBinaryBinaryStatus { get; set; }
+#pragma warning restore CA1819 // Properties should not return arrays
         public IntPtr? clCreateProgramWithBinaryResult { get; set; }
 
         public IntPtr clCreateProgramWithBinary(IntPtr context, uint numDevices, IntPtr[] deviceList, uint[] lengths,

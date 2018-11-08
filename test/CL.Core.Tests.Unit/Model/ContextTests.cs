@@ -40,7 +40,7 @@ namespace CL.Core.Tests.Unit.Model
         [Fact]
         public void CtorShouldThrowExceptionIfDevicesEmpty()
         {
-            Assert.Throws<ArgumentException>(() => new Context(FakeOpenClApi, new Device[] { }));
+            Assert.Throws<ArgumentException>(() => new Context(FakeOpenClApi, Array.Empty<Device>()));
         }
 
         [Fact]
@@ -209,7 +209,7 @@ namespace CL.Core.Tests.Unit.Model
             var device = new Device(platform, new IntPtr(1), FakeOpenClApi.DeviceApi);
             var ctx = new Context(FakeOpenClApi, new[] { device });
 
-            var sources = new string[] { };
+            var sources = Array.Empty<string>();
             Assert.Throws<ArgumentException>("sources", () => ctx.CreateProgram(sources));
         }
 
