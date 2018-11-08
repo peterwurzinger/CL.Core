@@ -7,7 +7,7 @@ namespace CL.Core.Model
         public string Message { get; }
         public ReadOnlyMemory<byte>? PrivateData { get; }
 
-        public ContextNotificationEventArgs(string message, ReadOnlyMemory<byte>? privateData)
+        internal ContextNotificationEventArgs(string message, ReadOnlyMemory<byte>? privateData)
         {
             if (string.IsNullOrEmpty(message))
                 throw new ArgumentException("Value cannot be null or empty.", nameof(message));
