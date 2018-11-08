@@ -1,6 +1,7 @@
 ﻿using CL.Core.API;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace CL.Core.Fakes
 {
@@ -41,7 +42,19 @@ namespace CL.Core.Fakes
         {
             binaryStatus = clCreateProgramWithBinaryBinaryStatus ?? new OpenClErrorCode[deviceList.Length];
             errorCodeRet = clCreateProgramWithBinaryErrorCodeRet ?? OpenClErrorCode.Success;
-            return clCreateProgramWithBinaryResult ?? new IntPtr(1);
+            var id = clCreateProgramWithBinaryResult ?? new IntPtr(1); ;
+
+            if (errorCodeRet != OpenClErrorCode.Success)
+                return IntPtr.Zero;
+
+            var deviceBinaries = binaries.Zip(deviceList, (binary, device) => new {binary, device})
+                                         .Zip(lengths, (binDev, length) => new {binDev.binary, binDev.device, length})
+                                         .Zip(binaryStatus, (binDevLength, status) => new {binDevLength.binary, binDevLength.device, binDevLength.length, status})
+                                         .Where(f => f.status == OpenClErrorCode.Success)
+                                         .Select(b => Tuple.Create(b.device, new byte[b.length]));
+
+            FakePrograms[id] = new FakeOpenClProgram(context, deviceBinaries);
+            return id;
         }
 
         public OpenClErrorCode? clBuildProgramReturn { get; set; }

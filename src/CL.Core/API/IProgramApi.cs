@@ -6,6 +6,7 @@ namespace CL.Core.API
     {
         IntPtr clCreateProgramWithSource(IntPtr context, uint count, string[] strings, uint[] lengths, out OpenClErrorCode errorCodeRet);
 
+        //TODO: Consider flagging binaryStatus as 'out'
         IntPtr clCreateProgramWithBinary(IntPtr context, uint numDevices, IntPtr[] deviceList, uint[] lengths,
             IntPtr[] binaries, OpenClErrorCode[] binaryStatus, out OpenClErrorCode errorCodeRet);
 

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CL.Core.Fakes
 {
@@ -6,6 +8,7 @@ namespace CL.Core.Fakes
     {
         public IntPtr ContextId { get; }
         public string[] Sources { get; }
+        public IDictionary<IntPtr, byte[]> Binaries { get; }
         public bool Released { get; internal set; }
 
         public FakeOpenClProgram(IntPtr contextId, string[] sources)
@@ -13,6 +16,15 @@ namespace CL.Core.Fakes
             ContextId = contextId;
             Sources = sources;
             Released = false;
+
+            Binaries = new Dictionary<IntPtr, byte[]>();
+        }
+
+        public FakeOpenClProgram(IntPtr contextId, IEnumerable<Tuple<IntPtr, byte[]>> deviceBinaries)
+        {
+            ContextId = contextId;
+            Released = false;
+            Binaries = deviceBinaries.ToDictionary(key => key.Item1, value => value.Item2);
         }
     }
 }
