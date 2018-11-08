@@ -10,7 +10,15 @@ namespace CL.Core.Fakes
         public OpenClErrorCode clGetPlatformIDs(uint numEntries, IntPtr[] platforms, out uint numPlatforms)
         {
             numPlatforms = clGetPlatformIDsNumPlatforms;
-            return clGetPlatformIDsResult ?? OpenClErrorCode.Success;
+
+            var errorCode = clGetPlatformIDsResult ?? OpenClErrorCode.Success;
+            if (errorCode == OpenClErrorCode.Success && platforms != null)
+            {
+                for (var i = 0; i < platforms.Length; i++)
+                    platforms[i] = new IntPtr(i + 1);
+            }
+
+            return errorCode;
         }
 
         public OpenClErrorCode? clGetPlatformInfoResult { get; set; }
