@@ -1,12 +1,16 @@
 ﻿using CL.Core.API;
 using System;
+using System.Collections.Generic;
 
 namespace CL.Core.Fakes
 {
     public class FakeCommandQueueApi : ICommandQueueApi
     {
+        public IDictionary<IntPtr, FakeOpenClCommandQueue> FakeCommandQueues { get; }
+
         public FakeCommandQueueApi()
         {
+            FakeCommandQueues = new Dictionary<IntPtr, FakeOpenClCommandQueue>();
             //Return at least 4 bytes to make result interpretable as numeric value
             clGetCommandQueueInfoParamValueSizeReturn = 4;
         }
@@ -17,19 +21,34 @@ namespace CL.Core.Fakes
             out OpenClErrorCode errorCode)
         {
             errorCode = clCreateCommandQueueErrorCode ?? OpenClErrorCode.Success;
-            return clCreateCommandQueueResult ?? IntPtr.Zero;
+            var id = clCreateCommandQueueResult ?? new IntPtr(1);
+
+            if (errorCode == OpenClErrorCode.Success)
+                FakeCommandQueues[id] = new FakeOpenClCommandQueue(context, device, properties);
+
+            return id;
         }
 
         public OpenClErrorCode? clRetainCommandQueueResult { get; set; }
         public OpenClErrorCode clRetainCommandQueue(IntPtr commandQueue)
         {
-            return clRetainCommandQueueResult ?? OpenClErrorCode.Success;
+            var errorCode = clRetainCommandQueueResult ?? OpenClErrorCode.Success;
+
+            if (errorCode == OpenClErrorCode.Success)
+                FakeCommandQueues[commandQueue].Retained = true;
+
+            return errorCode;
         }
 
         public OpenClErrorCode? clReleaseCommandQueueResult { get; set; }
         public OpenClErrorCode clReleaseCommandQueue(IntPtr commandQueue)
         {
-            return clReleaseCommandQueueResult ?? OpenClErrorCode.Success;
+            var errorCode = clReleaseCommandQueueResult ?? OpenClErrorCode.Success;
+
+            if (errorCode == OpenClErrorCode.Success)
+                FakeCommandQueues[commandQueue].Released = true;
+
+            return errorCode;
         }
 
         public OpenClErrorCode? clGetCommandQueueInfoResult { get; set; }
@@ -44,13 +63,23 @@ namespace CL.Core.Fakes
         public OpenClErrorCode? clFlushResult { get; set; }
         public OpenClErrorCode clFlush(IntPtr id)
         {
-            return clFlushResult ?? OpenClErrorCode.Success;
+            var errorCode = clFlushResult ?? OpenClErrorCode.Success;
+
+            if (errorCode == OpenClErrorCode.Success)
+                FakeCommandQueues[id].Flushed = true;
+
+            return errorCode;
         }
 
         public OpenClErrorCode? clFinishResult { get; set; }
         public OpenClErrorCode clFinish(IntPtr commandQueue)
         {
-            return clFinishResult ?? OpenClErrorCode.Success;
+            var errorCode = clFinishResult ?? OpenClErrorCode.Success;
+
+            if (errorCode == OpenClErrorCode.Success)
+                FakeCommandQueues[commandQueue].Finished = true;
+
+            return errorCode;
         }
     }
 }

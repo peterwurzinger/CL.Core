@@ -87,6 +87,19 @@ namespace CL.Core.Tests.Unit.Model
         }
 
         [Fact]
+        public void CtorShouldSetFlagsCorrectly()
+        {
+            var platform = new Platform(new IntPtr(1), FakeOpenClApi);
+            var device = new Device(platform, new IntPtr(1), FakeOpenClApi.DeviceApi);
+            var context = new Context(FakeOpenClApi, new[] { device });
+
+            var cq = new CommandQueue(context, device, true, true, FakeOpenClApi.CommandQueueApi);
+
+            Assert.True(FakeOpenClApi.FakeCommandQueueApi.FakeCommandQueues[cq.Id].Properties.HasFlag(CommandQueueProperties.ProfilingEnable));
+            Assert.True(FakeOpenClApi.FakeCommandQueueApi.FakeCommandQueues[cq.Id].Properties.HasFlag(CommandQueueProperties.OutOfOrderExecModeEnable));
+        }
+
+        [Fact]
         public void DisposeShouldNotThrowExceptionIfDisposedMultipleTimes()
         {
             var platform = new Platform(new IntPtr(1), FakeOpenClApi);
@@ -200,6 +213,57 @@ namespace CL.Core.Tests.Unit.Model
 
             Assert.False(cq.Equals(other));
         }
+
+        [Fact]
+        public void FinishShouldThrowExceptionIfDisposed()
+        {
+            var platform = new Platform(new IntPtr(1), FakeOpenClApi);
+            var device = new Device(platform, new IntPtr(1), FakeOpenClApi.DeviceApi);
+            var context = new Context(FakeOpenClApi, new[] { device });
+            var cq = new CommandQueue(context, device, false, false, FakeOpenClApi.CommandQueueApi);
+            cq.Dispose();
+
+            Assert.Throws<ObjectDisposedException>(() => cq.Finish());
+        }
+
+        [Fact]
+        public void FinishShouldCallClFinish()
+        {
+            var platform = new Platform(new IntPtr(1), FakeOpenClApi);
+            var device = new Device(platform, new IntPtr(1), FakeOpenClApi.DeviceApi);
+            var context = new Context(FakeOpenClApi, new[] { device });
+            var cq = new CommandQueue(context, device, false, false, FakeOpenClApi.CommandQueueApi);
+
+            cq.Finish();
+
+            Assert.True(FakeOpenClApi.FakeCommandQueueApi.FakeCommandQueues[cq.Id].Finished);
+        }
+
+        [Fact]
+        public void FlushShouldThrowExceptionIfDisposed()
+        {
+            var platform = new Platform(new IntPtr(1), FakeOpenClApi);
+            var device = new Device(platform, new IntPtr(1), FakeOpenClApi.DeviceApi);
+            var context = new Context(FakeOpenClApi, new[] { device });
+            var cq = new CommandQueue(context, device, false, false, FakeOpenClApi.CommandQueueApi);
+            cq.Dispose();
+
+            Assert.Throws<ObjectDisposedException>(() => cq.Flush());
+        }
+
+        [Fact]
+        public void FlushShouldCallClFlush()
+        {
+            var platform = new Platform(new IntPtr(1), FakeOpenClApi);
+            var device = new Device(platform, new IntPtr(1), FakeOpenClApi.DeviceApi);
+            var context = new Context(FakeOpenClApi, new[] { device });
+            var cq = new CommandQueue(context, device, false, false, FakeOpenClApi.CommandQueueApi);
+
+            cq.Flush();
+
+            Assert.True(FakeOpenClApi.FakeCommandQueueApi.FakeCommandQueues[cq.Id].Flushed);
+        }
+
 
         //TODO: Tests for Command Queue properties
         private class SuspiciousCommandQueue : CommandQueue
