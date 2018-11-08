@@ -1,4 +1,5 @@
 ﻿using CL.Core.API;
+using CL.Core.Fakes;
 using CL.Core.Model;
 using System;
 using Xunit;
@@ -100,6 +101,15 @@ namespace CL.Core.Tests.Unit.Model
             var platform = new Platform(new IntPtr(5), FakeOpenClApi);
 
             Assert.Equal(platform.Id.GetHashCode(), platform.GetHashCode());
+        }
+
+        [Fact]
+        public void CreateContextShouldCreateContext()
+        {
+            FakeOpenClApi.FakeDeviceApi.clGetDeviceIDsNumDevices = 1;
+            var platform = new Platform(new IntPtr(1), FakeOpenClApi);
+
+            Assert.NotNull(platform.CreateContext(platform.Devices));
         }
 
         private class SuspiciousPlatform : Platform
