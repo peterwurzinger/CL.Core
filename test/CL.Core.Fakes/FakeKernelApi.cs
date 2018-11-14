@@ -1,7 +1,7 @@
 ﻿using CL.Core.API;
+using CL.Core.Fakes.OpenCL;
 using System;
 using System.Collections.Generic;
-using CL.Core.Fakes.OpenCL;
 
 namespace CL.Core.Fakes
 {
@@ -19,17 +19,15 @@ namespace CL.Core.Fakes
         public IntPtr clCreateKernel(IntPtr program, string kernelName, out OpenClErrorCode errorCodeRet)
         {
             errorCodeRet = clCreateKernelErrorCode ?? OpenClErrorCode.Success;
-            IntPtr id;
 
-            if (errorCodeRet == OpenClErrorCode.Success)
-            {
-                id = clCreateKernelReturn ?? new IntPtr(1);
-                FakeKernels[id] = new FakeKernel(program);
-            }
-            else
-                id = IntPtr.Zero;
+            if (errorCodeRet != OpenClErrorCode.Success)
+                return IntPtr.Zero;
+
+            var id = clCreateKernelReturn ?? new IntPtr(1);
+            FakeKernels[id] = new FakeKernel(program, kernelName);
 
             return id;
+
         }
 
         public OpenClErrorCode? clReleaseProgramReturn { get; set; }
@@ -46,13 +44,11 @@ namespace CL.Core.Fakes
         }
 
         public OpenClErrorCode? clGetKernelInfoReturn { get; set; }
-        public uint? clGetKernelInfoParamValueSizeReturned { get; set; }
-
         public OpenClErrorCode clGetKernelInfo(IntPtr kernel, KernelInfoParameter paramName, uint paramValueSize, IntPtr paramValue,
             out uint paramValueSizeReturned)
         {
-            paramValueSizeReturned = clGetKernelInfoParamValueSizeReturned ?? 4;
-            return clGetKernelInfoReturn ?? OpenClErrorCode.Success;
+            var errorCode = clGetKernelInfoReturn ?? OpenClErrorCode.Success;
+            return FakeKernels[kernel].GetInfo(paramName, paramValueSize, paramValue, out paramValueSizeReturned, errorCode);
         }
 
         public OpenClErrorCode? clEnqueueNDRangeKernelError { get; set; }
