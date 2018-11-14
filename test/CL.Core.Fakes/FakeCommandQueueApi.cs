@@ -12,8 +12,6 @@ namespace CL.Core.Fakes
         public FakeCommandQueueApi()
         {
             FakeCommandQueues = new Dictionary<IntPtr, FakeCommandQueue>();
-            //Return at least 4 bytes to make result interpretable as numeric value
-            clGetCommandQueueInfoParamValueSizeReturn = 4;
         }
 
         public IntPtr? clCreateCommandQueueResult { get; set; }
@@ -53,12 +51,12 @@ namespace CL.Core.Fakes
         }
 
         public OpenClErrorCode? clGetCommandQueueInfoResult { get; set; }
-        public uint clGetCommandQueueInfoParamValueSizeReturn { get; set; }
         public OpenClErrorCode clGetCommandQueueInfo(IntPtr commandQueue, CommandQueueInfoParameter paramName, uint paramValueSize,
-            byte[] paramValue, out uint paramValueSizeReturn)
+            IntPtr paramValue, out uint paramValueSizeReturn)
         {
-            paramValueSizeReturn = clGetCommandQueueInfoParamValueSizeReturn;
-            return clGetCommandQueueInfoResult ?? 0;
+            var errorCode = clGetCommandQueueInfoResult ?? OpenClErrorCode.Success;
+            return FakeCommandQueues[commandQueue].GetInfo(paramName, paramValueSize, paramValue,
+                out paramValueSizeReturn, errorCode);
         }
 
         public OpenClErrorCode? clFlushResult { get; set; }

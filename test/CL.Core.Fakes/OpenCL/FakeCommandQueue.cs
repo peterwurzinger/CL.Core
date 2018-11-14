@@ -1,9 +1,9 @@
-﻿using System;
-using CL.Core.API;
+﻿using CL.Core.API;
+using System;
 
 namespace CL.Core.Fakes.OpenCL
 {
-    public class FakeCommandQueue
+    public class FakeCommandQueue : IInfoProvider<CommandQueueInfoParameter>
     {
         public IntPtr ContextId { get; }
         public IntPtr DeviceId { get; }
@@ -19,7 +19,16 @@ namespace CL.Core.Fakes.OpenCL
             ContextId = contextId;
             DeviceId = deviceId;
             Properties = props;
+
+            Infos = new InfoLookup<CommandQueueInfoParameter>
+            {
+                {CommandQueueInfoParameter.Context, contextId },
+                {CommandQueueInfoParameter.Device, deviceId },
+                {CommandQueueInfoParameter.Properties, Properties},
+                {CommandQueueInfoParameter.ReferenceCount, (uint)1}
+            };
         }
 
+        public InfoLookup<CommandQueueInfoParameter> Infos { get; }
     }
 }
