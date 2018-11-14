@@ -1,13 +1,14 @@
-﻿using CL.Core.Model;
-using System;
+﻿using System;
 using System.Text;
+using CL.Core.API;
+using CL.Core.Model;
 
-namespace CL.Core.API
+namespace CL.Core
 {
-    internal class InfoHelper<TParameter>
-    where TParameter : Enum
+    internal sealed class InfoHelper<TParameter>
+        where TParameter : Enum
     {
-        public delegate OpenClErrorCode GetInfoFunc(IntPtr handle, TParameter parameterName, uint valueSize,
+        internal delegate OpenClErrorCode GetInfoFunc(IntPtr handle, TParameter parameterName, uint valueSize,
             IntPtr paramValue, out uint parameterValueSizeReturn);
 
         private readonly IHasId _entity;
@@ -27,12 +28,10 @@ namespace CL.Core.API
         public unsafe TValue GetValue<TValue>(TParameter parameterName)
             where TValue : unmanaged
         {
-            var error = _infoFunc(_entity.Id, parameterName, 0, IntPtr.Zero, out var paramSize);
-            error.ThrowOnError();
+            _infoFunc(_entity.Id, parameterName, 0, IntPtr.Zero, out var paramSize).ThrowOnError();
 
             var stackMemory = stackalloc TValue[1];
-            error = _infoFunc(_entity.Id, parameterName, paramSize, (IntPtr)stackMemory, out _);
-            error.ThrowOnError();
+            _infoFunc(_entity.Id, parameterName, paramSize, (IntPtr)stackMemory, out _).ThrowOnError();
 
             return stackMemory[0];
         }
@@ -40,16 +39,14 @@ namespace CL.Core.API
         public unsafe ReadOnlySpan<TValue> GetValues<TValue>(TParameter parameterName)
             where TValue : unmanaged
         {
-            var error = _infoFunc(_entity.Id, parameterName, 0, IntPtr.Zero, out var paramSize);
-            error.ThrowOnError();
+            _infoFunc(_entity.Id, parameterName, 0, IntPtr.Zero, out var paramSize).ThrowOnError();
 
             //Explicitly allocating an array. Stackalloc doesn't make sense, since it would get allocated on heap eventually on return
             var memory = new TValue[(int)paramSize / sizeof(TValue)];
 
             fixed (void* ptr = memory)
             {
-                error = _infoFunc(_entity.Id, parameterName, paramSize, (IntPtr)ptr, out _);
-                error.ThrowOnError();
+                _infoFunc(_entity.Id, parameterName, paramSize, (IntPtr)ptr, out _).ThrowOnError();
             }
 
             return memory;
@@ -57,12 +54,10 @@ namespace CL.Core.API
 
         public unsafe string GetStringValue(TParameter parameterName)
         {
-            var error = _infoFunc(_entity.Id, parameterName, 0, IntPtr.Zero, out var paramSize);
-            error.ThrowOnError();
+            _infoFunc(_entity.Id, parameterName, 0, IntPtr.Zero, out var paramSize).ThrowOnError();
 
             var stackMemory = stackalloc byte[(int)paramSize];
-            error = _infoFunc(_entity.Id, parameterName, paramSize, (IntPtr)stackMemory, out _);
-            error.ThrowOnError();
+            _infoFunc(_entity.Id, parameterName, paramSize, (IntPtr) stackMemory, out _).ThrowOnError();
 
             return _encoding.GetString(stackMemory, (int)paramSize)?.TrimEnd((char)0);
         }

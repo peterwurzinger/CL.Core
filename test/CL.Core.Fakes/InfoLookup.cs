@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace CL.Core.Fakes
 {
@@ -51,7 +52,10 @@ namespace CL.Core.Fakes
 
         public void Add(TKey key, string value)
         {
-            Add(key, value.AsSpan());
+            if (ContainsKey(key))
+                throw new InvalidOperationException();
+
+            Add(key, Encoding.UTF8.GetBytes(value));
         }
 
         public void Add(TKey key, IReadOnlyCollection<string> values)
