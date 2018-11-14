@@ -56,7 +56,7 @@ namespace CL.Core.Model
 
         private void ValidateArgIndex(int argIndex)
         {
-            if (argIndex < 0 && argIndex >= NumberOfArguments)
+            if (argIndex < 0 || argIndex >= NumberOfArguments)
                 throw new ArgumentOutOfRangeException(nameof(argIndex), argIndex, $"The max index for {nameof(argIndex)} is {NumberOfArguments - 1}.");
         }
 
