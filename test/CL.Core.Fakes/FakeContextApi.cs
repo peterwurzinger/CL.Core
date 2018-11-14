@@ -1,16 +1,17 @@
 ﻿using CL.Core.API;
 using System;
 using System.Collections.Generic;
+using CL.Core.Fakes.OpenCL;
 
 namespace CL.Core.Fakes
 {
     public class FakeContextApi : IContextApi
     {
-        public IDictionary<IntPtr, FakeOpenClContext> FakeContexts { get; }
+        public IDictionary<IntPtr, FakeContext> FakeContexts { get; }
 
         public FakeContextApi()
         {
-            FakeContexts = new Dictionary<IntPtr, FakeOpenClContext>();
+            FakeContexts = new Dictionary<IntPtr, FakeContext>();
         }
 
         public IntPtr? clCreateContextResult { get; set; }
@@ -24,7 +25,7 @@ namespace CL.Core.Fakes
             var id = clCreateContextResult ?? new IntPtr(1);
 
             if (errorCode == OpenClErrorCode.Success)
-                FakeContexts[id] = new FakeOpenClContext(properties, deviceIds, pfnNotify);
+                FakeContexts[id] = new FakeContext(properties, deviceIds, pfnNotify);
 
             return id;
         }

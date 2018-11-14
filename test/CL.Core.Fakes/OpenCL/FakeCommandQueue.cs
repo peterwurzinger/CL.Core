@@ -1,9 +1,9 @@
-﻿using CL.Core.API;
-using System;
+﻿using System;
+using CL.Core.API;
 
-namespace CL.Core.Fakes
+namespace CL.Core.Fakes.OpenCL
 {
-    public class FakeOpenClCommandQueue
+    public class FakeCommandQueue
     {
         public IntPtr ContextId { get; }
         public IntPtr DeviceId { get; }
@@ -14,7 +14,7 @@ namespace CL.Core.Fakes
         public bool Released { get; internal set; }
         public bool Retained { get; internal set; }
 
-        public FakeOpenClCommandQueue(IntPtr contextId, IntPtr deviceId, CommandQueueProperties props)
+        public FakeCommandQueue(IntPtr contextId, IntPtr deviceId, CommandQueueProperties props)
         {
             ContextId = contextId;
             DeviceId = deviceId;

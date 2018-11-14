@@ -1,16 +1,17 @@
 ﻿using CL.Core.API;
 using System;
 using System.Collections.Generic;
+using CL.Core.Fakes.OpenCL;
 
 namespace CL.Core.Fakes
 {
     public class FakeCommandQueueApi : ICommandQueueApi
     {
-        public IDictionary<IntPtr, FakeOpenClCommandQueue> FakeCommandQueues { get; }
+        public IDictionary<IntPtr, FakeCommandQueue> FakeCommandQueues { get; }
 
         public FakeCommandQueueApi()
         {
-            FakeCommandQueues = new Dictionary<IntPtr, FakeOpenClCommandQueue>();
+            FakeCommandQueues = new Dictionary<IntPtr, FakeCommandQueue>();
             //Return at least 4 bytes to make result interpretable as numeric value
             clGetCommandQueueInfoParamValueSizeReturn = 4;
         }
@@ -24,7 +25,7 @@ namespace CL.Core.Fakes
             var id = clCreateCommandQueueResult ?? new IntPtr(1);
 
             if (errorCode == OpenClErrorCode.Success)
-                FakeCommandQueues[id] = new FakeOpenClCommandQueue(context, device, properties);
+                FakeCommandQueues[id] = new FakeCommandQueue(context, device, properties);
 
             return id;
         }

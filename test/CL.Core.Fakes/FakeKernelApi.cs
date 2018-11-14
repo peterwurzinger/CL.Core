@@ -1,16 +1,17 @@
 ﻿using CL.Core.API;
 using System;
 using System.Collections.Generic;
+using CL.Core.Fakes.OpenCL;
 
 namespace CL.Core.Fakes
 {
     public class FakeKernelApi : IKernelApi
     {
-        public IDictionary<IntPtr, FakeOpenClKernel> FakeKernels { get; }
+        public IDictionary<IntPtr, FakeKernel> FakeKernels { get; }
 
         public FakeKernelApi()
         {
-            FakeKernels = new Dictionary<IntPtr, FakeOpenClKernel>();
+            FakeKernels = new Dictionary<IntPtr, FakeKernel>();
         }
 
         public OpenClErrorCode? clCreateKernelErrorCode { get; set; }
@@ -23,7 +24,7 @@ namespace CL.Core.Fakes
             if (errorCodeRet == OpenClErrorCode.Success)
             {
                 id = clCreateKernelReturn ?? new IntPtr(1);
-                FakeKernels[id] = new FakeOpenClKernel(program);
+                FakeKernels[id] = new FakeKernel(program);
             }
             else
                 id = IntPtr.Zero;

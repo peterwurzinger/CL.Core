@@ -2,16 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CL.Core.Fakes
+namespace CL.Core.Fakes.OpenCL
 {
-    public class FakeOpenClProgram
+    public class FakeProgram
     {
         public IntPtr ContextId { get; }
         public IReadOnlyCollection<string> Sources { get; }
         public IDictionary<IntPtr, byte[]> Binaries { get; }
         public bool Released { get; internal set; }
 
-        public FakeOpenClProgram(IntPtr contextId, IReadOnlyCollection<string> sources)
+        public FakeProgram(IntPtr contextId, IReadOnlyCollection<string> sources)
         {
             ContextId = contextId;
             Sources = sources;
@@ -20,7 +20,7 @@ namespace CL.Core.Fakes
             Binaries = new Dictionary<IntPtr, byte[]>();
         }
 
-        public FakeOpenClProgram(IntPtr contextId, IEnumerable<Tuple<IntPtr, byte[]>> deviceBinaries)
+        public FakeProgram(IntPtr contextId, IEnumerable<Tuple<IntPtr, byte[]>> deviceBinaries)
         {
             ContextId = contextId;
             Released = false;

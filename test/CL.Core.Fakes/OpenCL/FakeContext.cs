@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using CL.Core.API;
 
-namespace CL.Core.Fakes
+namespace CL.Core.Fakes.OpenCL
 {
-    public class FakeOpenClContext
+    public class FakeContext
     {
         public bool Released { get; internal set; }
         public IReadOnlyCollection<IntPtr> Devices { get; }
         public IntPtr PfnNotify { get; }
         public IntPtr Properties { get; }
 
-        public FakeOpenClContext(IntPtr properties, IReadOnlyCollection<IntPtr> devices, IntPtr pfnNotify)
+        public FakeContext(IntPtr properties, IReadOnlyCollection<IntPtr> devices, IntPtr pfnNotify)
         {
             Properties = properties;
             Devices = devices;

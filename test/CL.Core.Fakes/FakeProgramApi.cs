@@ -2,16 +2,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CL.Core.Fakes.OpenCL;
 
 namespace CL.Core.Fakes
 {
     public class FakeProgramApi : IProgramApi
     {
-        public IDictionary<IntPtr, FakeOpenClProgram> FakePrograms { get; }
+        public IDictionary<IntPtr, FakeProgram> FakePrograms { get; }
 
         public FakeProgramApi()
         {
-            FakePrograms = new Dictionary<IntPtr, FakeOpenClProgram>();
+            FakePrograms = new Dictionary<IntPtr, FakeProgram>();
         }
 
         public OpenClErrorCode? clCreateProgramWithSourceErrorCode { get; set; }
@@ -25,7 +26,7 @@ namespace CL.Core.Fakes
             if (errorCodeRet == OpenClErrorCode.Success)
             {
                 id = clCreateProgramWithSourceReturn ?? new IntPtr(1);
-                FakePrograms[id] = new FakeOpenClProgram(context, strings);
+                FakePrograms[id] = new FakeProgram(context, strings);
             }
             else
                 id = IntPtr.Zero;
@@ -55,7 +56,7 @@ namespace CL.Core.Fakes
                                          .Where(f => f.status == OpenClErrorCode.Success)
                                          .Select(b => Tuple.Create(b.device, new byte[b.length]));
 
-            FakePrograms[id] = new FakeOpenClProgram(context, deviceBinaries);
+            FakePrograms[id] = new FakeProgram(context, deviceBinaries);
             return id;
         }
 

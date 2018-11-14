@@ -1,14 +1,14 @@
 ﻿using System;
 
-namespace CL.Core.Fakes
+namespace CL.Core.Fakes.OpenCL
 {
-    public class FakeOpenClKernel
+    public class FakeKernel
     {
         public IntPtr ProgramId { get; set; }
 
         public bool Released { get; internal set; }
 
-        public FakeOpenClKernel(IntPtr programId)
+        public FakeKernel(IntPtr programId)
         {
             ProgramId = programId;
             Released = false;

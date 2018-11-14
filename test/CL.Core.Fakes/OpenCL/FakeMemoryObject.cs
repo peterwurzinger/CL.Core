@@ -1,7 +1,7 @@
-﻿using CL.Core.API;
-using System;
+﻿using System;
+using CL.Core.API;
 
-namespace CL.Core.Fakes
+namespace CL.Core.Fakes.OpenCL
 {
     public class FakeMemoryObject : IInfoProvider<MemoryObjectInfoParameter>
     {

@@ -1,6 +1,7 @@
 ﻿using CL.Core.API;
 using System;
 using System.Collections.Generic;
+using CL.Core.Fakes.OpenCL;
 
 namespace CL.Core.Fakes
 {
