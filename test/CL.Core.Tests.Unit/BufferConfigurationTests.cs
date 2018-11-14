@@ -6,18 +6,17 @@ using Xunit;
 
 namespace CL.Core.Tests.Unit
 {
-    public class BufferStubConfigurationTests : UnitTestBase
+    public class BufferConfigurationTests : UnitTestBase
     {
-        private readonly Context _context;
         private readonly BufferStubConfiguration<byte> _stubConfiguration;
 
-        public BufferStubConfigurationTests()
+        public BufferConfigurationTests()
         {
             var platform = new Platform(new IntPtr(1), FakeOpenClApi);
             var devices = new[] { new Device(platform, new IntPtr(1), FakeOpenClApi.DeviceApi) };
-            _context = new Context(FakeOpenClApi, devices);
+            var context = new Context(FakeOpenClApi, devices);
 
-            _stubConfiguration = _context.CreateBuffer<byte>();
+            _stubConfiguration = context.CreateBuffer<byte>();
         }
 
         [Fact]
@@ -60,7 +59,39 @@ namespace CL.Core.Tests.Unit
         [Fact]
         public void AsReadOnlyShouldSetCorrectFlags()
         {
+            var buffer = _stubConfiguration.ByAllocation(1).AsReadOnly();
 
+            Assert.True(buffer.Flags.HasFlag(MemoryFlags.ReadOnly));
+        }
+
+        [Fact]
+        public void AsWriteOnlyShouldSetCorrectFlags()
+        {
+            var buffer = _stubConfiguration.ByAllocation(1).AsWriteOnly();
+
+            Assert.True(buffer.Flags.HasFlag(MemoryFlags.WriteOnly));
+        }
+
+        [Fact]
+        public void AsReadWriteShouldSetCorrectFlags()
+        {
+            var buffer = _stubConfiguration.ByAllocation(1).AsReadWrite();
+
+            Assert.True(buffer.Flags.HasFlag(MemoryFlags.ReadWrite));
+        }
+
+        [Fact]
+        public void ByAllocationShouldThrowExceptionIfCreateBufferReturnsError()
+        {
+            FakeOpenClApi.FakeBufferApi.clCreateBufferErrorCode = OpenClErrorCode.InvalidBufferSize;
+            Assert.Throws<ClCoreException>(() => _stubConfiguration.ByAllocation(1).AsReadWrite());
+        }
+
+        [Fact]
+        public void ByHostMemoryShouldThrowExceptionIfCreateBufferReturnsError()
+        {
+            FakeOpenClApi.FakeBufferApi.clCreateBufferErrorCode = OpenClErrorCode.InvalidBufferSize;
+            Assert.Throws<ClCoreException>(() => _stubConfiguration.ByHostMemory(new byte[0]).AsReadWrite());
         }
     }
 }
