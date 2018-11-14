@@ -1,8 +1,9 @@
 ﻿using CL.Core.API;
+using CL.Core.Fakes.OpenCL;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using CL.Core.Fakes.OpenCL;
+using OpenClErrorCode = CL.Core.API.OpenClErrorCode;
 
 namespace CL.Core.Fakes
 {
@@ -45,14 +46,14 @@ namespace CL.Core.Fakes
         {
             binaryStatus = clCreateProgramWithBinaryBinaryStatus ?? new OpenClErrorCode[deviceList.Length];
             errorCodeRet = clCreateProgramWithBinaryErrorCodeRet ?? OpenClErrorCode.Success;
-            var id = clCreateProgramWithBinaryResult ?? new IntPtr(1); ;
+            var id = clCreateProgramWithBinaryResult ?? new IntPtr(1);
 
             if (errorCodeRet != OpenClErrorCode.Success)
                 return IntPtr.Zero;
 
-            var deviceBinaries = binaries.Zip(deviceList, (binary, device) => new {binary, device})
-                                         .Zip(lengths, (binDev, length) => new {binDev.binary, binDev.device, length})
-                                         .Zip(binaryStatus, (binDevLength, status) => new {binDevLength.binary, binDevLength.device, binDevLength.length, status})
+            var deviceBinaries = binaries.Zip(deviceList, (binary, device) => new { binary, device })
+                                         .Zip(lengths, (binDev, length) => new { binDev.binary, binDev.device, length })
+                                         .Zip(binaryStatus, (binDevLength, status) => new { binDevLength.binary, binDevLength.device, binDevLength.length, status })
                                          .Where(f => f.status == OpenClErrorCode.Success)
                                          .Select(b => Tuple.Create(b.device, new byte[b.length]));
 
@@ -77,12 +78,11 @@ namespace CL.Core.Fakes
         }
 
         public OpenClErrorCode? clGetProgramInfoReturn { get; set; }
-        public uint? clGetProgramInfoParamValueSizeReturned { get; set; }
         public OpenClErrorCode clGetProgramInfo(IntPtr program, ProgramInfoParameter paramName, uint paramValueSize, IntPtr paramValue,
             out uint paramValueSizeReturned)
         {
-            paramValueSizeReturned = clGetProgramInfoParamValueSizeReturned ?? 4;
-            return clGetProgramInfoReturn ?? OpenClErrorCode.Success;
+            var errorCode = clGetProgramInfoReturn ?? OpenClErrorCode.Success;
+            return FakePrograms[program].GetInfo(paramName, paramValueSize, paramValue, out paramValueSizeReturned, errorCode);
         }
 
 
@@ -97,7 +97,8 @@ namespace CL.Core.Fakes
         {
             var result = clReleaseProgramReturn ?? OpenClErrorCode.Success;
 
-            FakePrograms[program].Released = true;
+            if (result == OpenClErrorCode.Success)
+                FakePrograms[program].Released = true;
 
             return result;
         }

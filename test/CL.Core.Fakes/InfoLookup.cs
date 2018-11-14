@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace CL.Core.Fakes
@@ -30,6 +31,15 @@ namespace CL.Core.Fakes
             _infos.Add(key, storage);
         }
 
+        public void Add<TValue>(TKey key, TValue[] values)
+            where TValue : struct
+        {
+            if (ContainsKey(key))
+                throw new InvalidOperationException();
+
+            _infos.Add(key, MemoryMarshal.Cast<TValue, byte>(values).ToArray());
+        }
+
         public void Add<TValue>(TKey key, ReadOnlySpan<TValue> value)
             where TValue : struct
         {
@@ -42,6 +52,14 @@ namespace CL.Core.Fakes
         public void Add(TKey key, string value)
         {
             Add(key, value.AsSpan());
+        }
+
+        public void Add(TKey key, IReadOnlyCollection<string> values)
+        {
+            //Feels like Memory<T> and Span<T> are trolling
+            var bla = values.Select(v => new Memory<byte>(MemoryMarshal.AsBytes(v.AsSpan()).ToArray()))
+                            .Aggregate(Enumerable.Empty<byte>(), (p, c) => p.Concat(c.ToArray()));
+            Add(key, (ReadOnlySpan<byte>)bla.ToArray().AsSpan());
         }
 
         public unsafe void CopyTo(TKey key, IntPtr memoryLocation, int length)
