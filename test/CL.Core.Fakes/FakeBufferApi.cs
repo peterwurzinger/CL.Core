@@ -67,29 +67,12 @@ namespace CL.Core.Fakes
             return errorCode;
         }
 
-        public uint? clGetMemObjectInfoParamValueSizeRet { get; set; }
         public OpenClErrorCode? clGetMemObjectInfoErrorCode { get; set; }
         public OpenClErrorCode clGetMemObjectInfo(IntPtr memObj, MemoryObjectInfoParameter paramName, uint paramValueSize,
             IntPtr paramValue, out uint paramValueSizeRet)
         {
-            //TODO: Expand this to every clGet*Info - method
             var errorCode = clGetMemObjectInfoErrorCode ?? OpenClErrorCode.Success;
-            if (errorCode != OpenClErrorCode.Success)
-            {
-                paramValueSizeRet = 0;
-                return errorCode;
-            }
-
-            //First call, obtain size
-            if (paramValueSize == 0)
-            {
-                paramValueSizeRet = (uint)FakeMemoryObjects[memObj].Infos[paramName].Length;
-                return OpenClErrorCode.Success;
-            }
-
-            FakeMemoryObjects[memObj].Infos.CopyTo(paramName, paramValue, (int)paramValueSize);
-            paramValueSizeRet = paramValueSize;
-            return OpenClErrorCode.Success;
+            return FakeMemoryObjects[memObj].GetInfo(paramName, paramValueSize, paramValue, out paramValueSizeRet, errorCode);
         }
     }
 }

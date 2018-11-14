@@ -3,7 +3,7 @@ using System;
 
 namespace CL.Core.Fakes
 {
-    public class FakeMemoryObject
+    public class FakeMemoryObject : IInfoProvider<MemoryObjectInfoParameter>
     {
         public ulong Size { get; }
         public MemoryFlags Flags { get; }
