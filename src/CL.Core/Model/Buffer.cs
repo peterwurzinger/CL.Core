@@ -11,7 +11,9 @@ namespace CL.Core.Model
         where T : unmanaged
     {
         private bool _disposed;
-        private readonly IList<SubBuffer<T>> _attachedSubBuffers;
+        private readonly List<SubBuffer<T>> _attachedSubBuffers;
+
+        public IReadOnlyCollection<SubBuffer<T>> SubBuffers => _attachedSubBuffers;
 
         internal Buffer(IOpenClApi api, Context context, IntPtr id, MemoryHandle? hostMemory = null)
             : base(api, context, id, hostMemory)
@@ -32,7 +34,7 @@ namespace CL.Core.Model
             var subBuffer = new SubBuffer<T>(Api, this);
             _attachedSubBuffers.Add(subBuffer);
 
-            throw new NotImplementedException();
+            return subBuffer;
         }
 
         //TODO: Re-Introduce BufferBase <- (Buffer, SubBuffer) to implement Read/Write-operations there
