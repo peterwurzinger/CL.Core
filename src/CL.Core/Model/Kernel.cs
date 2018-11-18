@@ -77,7 +77,7 @@ namespace CL.Core.Model
             return Execute(commandQueue, (uint)globalLocalWorkSize.Length, globalWorkSize, globalWorkOffset, localWorkSize);
         }
 
-        private unsafe Event Execute(CommandQueue commandQueue, uint workDimensions, uint[] globalWorkSize, uint[] globalWorkOffset, uint[] localWorkSize = null)
+        private unsafe Event Execute(CommandQueue commandQueue, uint workDimensions, ulong[] globalWorkSize, ulong[] globalWorkOffset, ulong[] localWorkSize = null)
         {
             if (workDimensions == 0)
                 throw new ArgumentOutOfRangeException(nameof(workDimensions), workDimensions, "Work dimensions must be greater than 0.");
@@ -101,6 +101,7 @@ namespace CL.Core.Model
 
             var handles = new List<MemoryHandle>();
 
+            //TODO: EnqueueNDRange expects globalWorkSize-Array of size_t (ulong for 64bit, uint for 32bit!!)
             var globalWorkSizeHandle = globalWorkSize.AsMemory().Pin();
             handles.Add(globalWorkSizeHandle);
             var globalWorkSizePtr = new UIntPtr(globalWorkSizeHandle.Pointer);
@@ -113,7 +114,7 @@ namespace CL.Core.Model
             if (localWorkSize != null)
             {
                 var localWorkSizeArray = localWorkSize.ToArray();
-                var workItemsPerWorkGroup = localWorkSizeArray.Aggregate(1L, (workSize, dimWorkSize) => workSize * dimWorkSize);
+                var workItemsPerWorkGroup = localWorkSizeArray.Aggregate((ulong)1, (workSize, dimWorkSize) => workSize * dimWorkSize);
                 if (workItemsPerWorkGroup > commandQueue.Device.MaxWorkGroupSize)
                     throw new ArgumentException($"Total number of work-items in a work-group must not exceed devices maximum work-group size of {commandQueue.Device.MaxWorkGroupSize}.");
 

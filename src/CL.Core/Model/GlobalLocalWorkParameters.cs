@@ -4,16 +4,16 @@ namespace CL.Core.Model
 {
     public readonly struct GlobalLocalWorkParameters : IEquatable<GlobalLocalWorkParameters>
     {
-        public uint GlobalWorkOffset { get; }
-        public uint GlobalWorkSize { get; }
-        public uint LocalWorkSize { get; }
+        public ulong GlobalWorkOffset { get; }
+        public ulong GlobalWorkSize { get; }
+        public ulong LocalWorkSize { get; }
 
-        public GlobalLocalWorkParameters(uint globalWorkSize, uint localWorkSize)
+        public GlobalLocalWorkParameters(ulong globalWorkSize, ulong localWorkSize)
             : this(globalWorkSize, 0, localWorkSize)
         {
         }
 
-        public GlobalLocalWorkParameters(uint globalWorkSize, uint globalWorkOffset, uint localWorkSize)
+        public GlobalLocalWorkParameters(ulong globalWorkSize, ulong globalWorkOffset, ulong localWorkSize)
         {
             GlobalWorkSize = globalWorkSize;
             GlobalWorkOffset = globalWorkOffset;

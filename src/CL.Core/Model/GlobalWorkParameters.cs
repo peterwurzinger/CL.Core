@@ -4,15 +4,15 @@ namespace CL.Core.Model
 {
     public readonly struct GlobalWorkParameters : IEquatable<GlobalWorkParameters>
     {
-        public uint GlobalWorkOffset { get; }
-        public uint GlobalWorkSize { get; }
+        public ulong GlobalWorkOffset { get; }
+        public ulong GlobalWorkSize { get; }
 
-        public GlobalWorkParameters(uint globalWorkSize)
+        public GlobalWorkParameters(ulong globalWorkSize)
             : this(globalWorkSize, 0)
         {
         }
 
-        public GlobalWorkParameters(uint globalWorkSize, uint globalWorkOffset)
+        public GlobalWorkParameters(ulong globalWorkSize, ulong globalWorkOffset)
         {
             GlobalWorkSize = globalWorkSize;
             GlobalWorkOffset = globalWorkOffset;
