@@ -41,15 +41,26 @@ namespace CL.Core.Model
 
         public ReadOnlySpan<T> Read(CommandQueue commandQueue)
         {
+            return Read(commandQueue, 0);
+        }
+
+        public ReadOnlySpan<T> Read(CommandQueue commandQueue, uint offset)
+        {
             if (_disposed)
                 throw new ObjectDisposedException(GetType().FullName);
 
             if (commandQueue == null)
                 throw new ArgumentNullException(nameof(commandQueue));
+            
+            if (offset > Size)
+                throw new ArgumentException("Offset must not be greater than buffer size.", nameof(offset));
 
-            var memory = new byte[Size];
+            var cb = (uint)Size - offset;
+
+            //TODO: Evil allocation?
+            var memory = new byte[cb];
             var hdl = GCHandle.Alloc(memory, GCHandleType.Pinned);
-            var error = Api.BufferApi.clEnqueueReadBuffer(commandQueue.Id, Id, true, 0, (uint)Size, hdl.AddrOfPinnedObject(), 0,
+            var error = Api.BufferApi.clEnqueueReadBuffer(commandQueue.Id, Id, true, offset, cb, hdl.AddrOfPinnedObject(), 0,
                 null, out _);
 
             hdl.Free();
