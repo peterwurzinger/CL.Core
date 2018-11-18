@@ -39,8 +39,9 @@ namespace CL.Core.Model
 
             Devices = devices;
 
-            _notificationHandle = GCHandle.Alloc((ContextErrorDelegate)NotificationCallbackProxy);
-            var fp = Marshal.GetFunctionPointerForDelegate((ContextErrorDelegate)NotificationCallbackProxy);
+            var callbackDelegate = (ContextErrorDelegate) NotificationCallbackProxy;
+            _notificationHandle = GCHandle.Alloc(callbackDelegate);
+            var fp = Marshal.GetFunctionPointerForDelegate(callbackDelegate);
 
             var id = _openClApi.ContextApi.clCreateContext(IntPtr.Zero, (uint)devices.Count, devices.Select(device => device.Id).ToArray(), fp, IntPtr.Zero, out var error);
             error.ThrowOnError();
