@@ -1,67 +1,50 @@
 ﻿using CL.Core.API;
 using System;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace CL.Core.Model
 {
 #pragma warning disable CA1716 // Identifiers should not match keywords
-    public sealed class Event : IHasId
+    public sealed class Event : EventBase<bool>
 #pragma warning restore CA1716 // Identifiers should not match keywords
     {
-        public IntPtr Id { get; }
-        public EventCommandExecutionStatus Status => _infoHelper.GetValue<EventCommandExecutionStatus>(EventInfoParameter.CommandExecutionStatus);
 
-        private delegate void EventCallback(IntPtr evt, EventCommandExecutionStatus eventCommandExecStatus, IntPtr userData);
-
-        private readonly IOpenClApi _api;
-        private readonly TaskCompletionSource<bool> _taskCompletionSource;
-        private readonly InfoHelper<EventInfoParameter> _infoHelper;
-
-        private GCHandle _handle;
-
-        public Event(IOpenClApi api, IntPtr evt)
+        internal Event(IOpenClApi api, IntPtr evt)
+            : base(api, evt, true)
         {
-            _api = api ?? throw new ArgumentNullException(nameof(api));
-            Id = evt;
-
-            _infoHelper = new InfoHelper<EventInfoParameter>(this, api.EventApi.clGetEventInfo);
-
-            api.EventApi.clRetainEvent(evt).ThrowOnError();
-
-            _taskCompletionSource = new TaskCompletionSource<bool>();
-
-            var callbackDelegate = (EventCallback)Callback;
-            _handle = GCHandle.Alloc(callbackDelegate);
-            var fp = Marshal.GetFunctionPointerForDelegate(callbackDelegate);
-
-            api.EventApi.clSetEventCallback(evt, EventCommandExecutionStatus.Complete, fp, IntPtr.Zero).ThrowOnError();
         }
 
         public void WaitComplete()
         {
-            ValidateWait();
-            _taskCompletionSource.Task.Wait();
+            TaskCompletionSource.Task.Wait();
         }
 
         public Task WaitCompleteAsync()
         {
-            ValidateWait();
-            return _taskCompletionSource.Task;
+            return TaskCompletionSource.Task;
         }
 
-        private void ValidateWait()
+
+    }
+
+#pragma warning disable CA1716 // Identifiers should not match keywords
+    public sealed class Event<TResult> : EventBase<TResult>
+#pragma warning restore CA1716 // Identifiers should not match keywords
+    {
+        public Event(IOpenClApi api, IntPtr evt, TResult result)
+            : base(api, evt, result)
         {
-            //TODO: See if CommandQueue is Flushed
-            if (false)
-                throw new ClCoreException("");
         }
 
-        private void Callback(IntPtr evt, EventCommandExecutionStatus eventCommandExecStatus, IntPtr userData)
+        public TResult WaitComplete()
         {
-            _taskCompletionSource.SetResult(true);
-            _handle.Free();
-            _api.EventApi.clReleaseEvent(evt).ThrowOnError();
+            return TaskCompletionSource.Task.GetAwaiter().GetResult();
         }
+
+        public Task<TResult> WaitCompleteAsync()
+        {
+            return TaskCompletionSource.Task;
+        }
+
     }
 }

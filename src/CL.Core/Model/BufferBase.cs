@@ -1,8 +1,7 @@
-﻿using System;
+﻿using CL.Core.API;
+using System;
 using System.Buffers;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using CL.Core.API;
 
 namespace CL.Core.Model
 {
@@ -28,7 +27,7 @@ namespace CL.Core.Model
             if (commandQueue == null)
                 throw new ArgumentNullException(nameof(commandQueue));
 
-            var memory = new byte[Size];
+            var memory = new T[Size];
             var hdl = GCHandle.Alloc(memory, GCHandleType.Pinned);
             var error = Api.BufferApi.clEnqueueReadBuffer(commandQueue.Id, Id, true, 0, (uint)Size, hdl.AddrOfPinnedObject(), 0,
                 null, out _);
@@ -36,11 +35,10 @@ namespace CL.Core.Model
             hdl.Free();
             error.ThrowOnError();
 
-            return MemoryMarshal.Cast<byte, T>(memory);
+            return memory;
         }
 
         public unsafe void Write(CommandQueue commandQueue, ReadOnlyMemory<T> data)
-
         {
             if (_disposed)
                 throw new ObjectDisposedException(GetType().FullName);
@@ -54,16 +52,39 @@ namespace CL.Core.Model
             error.ThrowOnError();
         }
 
-        public Task<ReadOnlyMemory<T>> ReadAsync(CommandQueue commandQueue)
+        public Event<ReadOnlyMemory<T>> ReadAsync(CommandQueue commandQueue)
         {
-            throw new NotImplementedException();
-            //clWaitForEvent returned by clEnqueueRead
+            if (_disposed)
+                throw new ObjectDisposedException(GetType().FullName);
+
+            if (commandQueue == null)
+                throw new ArgumentNullException(nameof(commandQueue));
+
+            var memory = new T[Size];
+            var hdl = GCHandle.Alloc(memory, GCHandleType.Pinned);
+            var error = Api.BufferApi.clEnqueueReadBuffer(commandQueue.Id, Id, true, 0, (uint)Size, hdl.AddrOfPinnedObject(), 0,
+                null, out var evt);
+
+            hdl.Free();
+            error.ThrowOnError();
+
+            return new Event<ReadOnlyMemory<T>>(Api, evt, memory);
         }
 
-        public Task WriteAsync(CommandQueue commandQueue, ReadOnlyMemory<T> data)
+        public unsafe Event WriteAsync(CommandQueue commandQueue, ReadOnlyMemory<T> data)
         {
-            throw new NotImplementedException();
-            //clWaitForEvent returned by clEnqueueWrite
+            if (_disposed)
+                throw new ObjectDisposedException(GetType().FullName);
+
+            if (commandQueue == null)
+                throw new ArgumentNullException(nameof(commandQueue));
+
+            var handle = data.Pin();
+            var error = Api.BufferApi.clEnqueueWriteBuffer(commandQueue.Id, Id, false, 0, (uint)Size, new IntPtr(handle.Pointer), 0, null, out var evt);
+            handle.Dispose();
+            error.ThrowOnError();
+
+            return new Event(Api, evt);
         }
 
         protected override void Dispose(bool disposing)
