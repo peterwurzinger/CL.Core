@@ -5,18 +5,19 @@ using CL.Core.Model;
 
 namespace CL.Core.MemoryObjectConfiguration
 {
-    public class SubBufferConfiguration<T> : ConfigurationStep<T, SubBuffer<T>>
+    public class SubBufferMemoryBehaviorConfiguration<T> : ConfigurationStep<T, SubBuffer<T>>
         where T : unmanaged
     {
-        private readonly BufferRegion _region;
         private readonly Buffer<T> _parent;
+        private readonly BufferRegion _region;
 
-        internal SubBufferConfiguration(IOpenClApi api, Context context, Action<SubBuffer<T>> memoryObjectCreatedCallback, Buffer<T> parent, BufferRegion region)
+        internal SubBufferMemoryBehaviorConfiguration(IOpenClApi api, Context context, Action<SubBuffer<T>> memoryObjectCreatedCallback, Buffer<T> parent, BufferRegion region)
             : base(api, context, memoryObjectCreatedCallback)
         {
-            _parent = parent ?? throw new ArgumentNullException(nameof(parent));
+            _parent = parent;
             _region = region;
         }
+        
         public SubBuffer<T> AsReadOnly()
         {
             return BuildInternal(MemoryFlags.ReadOnly);

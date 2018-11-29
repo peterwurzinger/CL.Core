@@ -25,12 +25,12 @@ namespace CL.Core.Model
         {
         }
 
-        public SubBufferConfiguration<T> CreateSubBuffer(BufferRegion region)
+        public SubBufferStubConfiguration<T> CreateSubBuffer()
         {
             if (_disposed)
                 throw new ObjectDisposedException(GetType().FullName);
 
-            return new SubBufferConfiguration<T>(Api, Context, b => _attachedSubBuffers.Add(b), this, region);
+            return new SubBufferStubConfiguration<T>(Api, Context, b => _attachedSubBuffers.Add(b), this);
         }
 
 

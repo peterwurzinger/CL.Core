@@ -3,7 +3,6 @@ using CL.Core.Native;
 using System;
 using System.Diagnostics;
 using System.IO;
-using CL.Core.API;
 
 namespace CL.Core.Samples.NetCore
 {
@@ -44,7 +43,7 @@ namespace CL.Core.Samples.NetCore
                 var xBuffer = ctx.CreateBuffer<float>().ByAllocation((uint)workSize).AsReadWrite();
                 var yBuffer = ctx.CreateBuffer<float>().ByAllocation((uint)workSize).AsReadOnly();
 
-                var xSub = xBuffer.CreateSubBuffer(new BufferRegion(0, 16)).AsReadOnly();
+                var xSub = xBuffer.CreateSubBuffer().WithSize(4).AsReadOnly();
 
                 kernel.SetMemoryArgument(0, xBuffer);
                 kernel.SetMemoryArgument(1, yBuffer);
