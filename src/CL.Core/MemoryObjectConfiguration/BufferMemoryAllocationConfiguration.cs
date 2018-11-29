@@ -1,17 +1,17 @@
-﻿using CL.Core.API;
-using CL.Core.Model;
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
+using CL.Core.API;
+using CL.Core.Model;
 
-namespace CL.Core
+namespace CL.Core.MemoryObjectConfiguration
 {
     public class BufferMemoryAllocationConfiguration<T> : BufferMemoryBehaviorConfiguration<T>
         where T : unmanaged
     {
         private readonly uint _numElements;
 
-        public BufferMemoryAllocationConfiguration(IOpenClApi api, Context context, Action<Buffer<T>> bufferCreatedCallback, MemoryFlags flags, uint numElements)
-            : base(api, context, bufferCreatedCallback, flags)
+        internal BufferMemoryAllocationConfiguration(IOpenClApi api, Context context, Action<Buffer<T>> memoryObjectCreatedCallback, MemoryFlags flags, uint numElements)
+            : base(api, context, memoryObjectCreatedCallback, flags)
         {
             _numElements = numElements;
         }

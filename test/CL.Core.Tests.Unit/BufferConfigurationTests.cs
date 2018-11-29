@@ -2,6 +2,7 @@
 using CL.Core.Tests.Unit.Model;
 using System;
 using CL.Core.API;
+using CL.Core.MemoryObjectConfiguration;
 using Xunit;
 
 namespace CL.Core.Tests.Unit

@@ -1,6 +1,7 @@
 ﻿using CL.Core.API;
 using CL.Core.Model;
 using System;
+using CL.Core.MemoryObjectConfiguration;
 
 namespace CL.Core.Fakes
 {
@@ -14,6 +15,6 @@ namespace CL.Core.Fakes
 
         public IOpenClApi GetApi => Api;
         public Context GetContext => Context;
-        public Action<Buffer<T>> GetBufferCreatedCallback => BufferCreatedCallback;
+        public Action<Buffer<T>> GetBufferCreatedCallback => MemoryObjectCreatedCallback;
     }
 }
