@@ -1,10 +1,10 @@
-﻿using CL.Core.Fakes;
-using CL.Core.Model;
-using System;
+﻿using System;
 using System.Linq;
+using CL.Core.Fakes;
+using CL.Core.Model;
 using Xunit;
 
-namespace CL.Core.Tests.Unit
+namespace CL.Core.Tests.Unit.MemoryObjectConfiguration
 {
     public class BufferConfigurationStepTests
     {
