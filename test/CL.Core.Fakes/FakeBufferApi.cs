@@ -1,6 +1,7 @@
 ﻿using CL.Core.API;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using CL.Core.Fakes.OpenCL;
 
 namespace CL.Core.Fakes
@@ -36,7 +37,21 @@ namespace CL.Core.Fakes
             out OpenClErrorCode errorCode)
         {
             errorCode = clCreateSubBufferErrorCode ?? OpenClErrorCode.Success;
-            return clCreateSubBufferResult ?? IntPtr.Zero;
+
+            if (errorCode == OpenClErrorCode.Success)
+            {
+                var id = clCreateSubBufferResult ?? new IntPtr(1);
+                var regionObject = Marshal.PtrToStructure<BufferRegion>(bufferCreateInfo);
+                const MemoryFlags memMask = MemoryFlags.AllocHostPointer | MemoryFlags.UseHostPointer | MemoryFlags.CopyHostPointer;
+
+                var parent = FakeMemoryObjects[buffer];
+                var validFlags = (parent.Flags & (memMask)) | flags;
+
+                FakeMemoryObjects[id] = new FakeMemoryObject(regionObject.Size, validFlags, parent.HostPointer);
+                return id;
+            }
+
+            return IntPtr.Zero;
         }
 
         public OpenClErrorCode? clEnqueueReadBufferResult { get; set; }

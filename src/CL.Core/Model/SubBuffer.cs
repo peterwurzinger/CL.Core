@@ -3,13 +3,16 @@ using System;
 
 namespace CL.Core.Model
 {
-    public class SubBuffer<T> : MemoryObject
+    public class SubBuffer<T> : BufferBase<T>
     where T : unmanaged
     {
-        internal SubBuffer(IOpenClApi api, Buffer<T> parentBuffer)
-            : base(api, parentBuffer.Context, IntPtr.Zero)
+        public Buffer<T> Parent { get; }
+
+        // ReSharper disable once SuggestBaseTypeForParameter
+        internal SubBuffer(IOpenClApi api, Buffer<T> parent, IntPtr id)
+            : base(api, parent?.Context, id)
         {
-            throw new NotImplementedException();
+            Parent = parent;
         }
     }
 }

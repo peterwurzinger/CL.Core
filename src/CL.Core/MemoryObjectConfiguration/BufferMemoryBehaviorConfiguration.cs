@@ -1,16 +1,16 @@
-﻿using CL.Core.API;
+﻿using System;
+using CL.Core.API;
 using CL.Core.Model;
-using System;
 
-namespace CL.Core
+namespace CL.Core.MemoryObjectConfiguration
 {
     public abstract class BufferMemoryBehaviorConfiguration<T> : BufferConfigurationStep<T>
         where T : unmanaged
     {
         protected MemoryFlags Flags { get; set; }
 
-        internal BufferMemoryBehaviorConfiguration(IOpenClApi api, Context context, Action<Buffer<T>> bufferCreatedCallback, MemoryFlags flags)
-            : base(api, context, bufferCreatedCallback)
+        internal BufferMemoryBehaviorConfiguration(IOpenClApi api, Context context, Action<Buffer<T>> memoryObjectCreatedCallback, MemoryFlags flags)
+            : base(api, context, memoryObjectCreatedCallback)
         {
             Flags = flags;
         }
@@ -36,7 +36,7 @@ namespace CL.Core
         private Buffer<T> BuildInternal()
         {
             var buffer = Build();
-            BufferCreatedCallback(buffer);
+            MemoryObjectCreatedCallback(buffer);
             return buffer;
         }
 

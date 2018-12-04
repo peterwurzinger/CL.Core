@@ -1,10 +1,8 @@
 ﻿using CL.Core.Model;
 using CL.Core.Native;
 using System;
-using System.Drawing;
-using System.Drawing.Imaging;
+using System.Diagnostics;
 using System.IO;
-using System.Linq;
 
 namespace CL.Core.Samples.NetCore
 {
@@ -17,53 +15,68 @@ namespace CL.Core.Samples.NetCore
             var factory = new PlatformFactory(api);
             var platforms = factory.GetPlatforms();
 
-            foreach (var platform in platforms.Where(p => p.Devices.Count == 1))
+            foreach (var platform in platforms)
             {
                 Console.WriteLine($"{platform.Id} - {platform.Vendor}");
 
                 var ctx = platform.CreateContext(platform.Devices);
                 ctx.Notification += CtxOnNotification;
 
-                var sources = File.ReadAllText("Mandelbrot.cl");
+                var sources = File.ReadAllText("ExampleProgram.cl");
                 var program = ctx.CreateProgram(sources);
                 program.BuildAsync(ctx.Devices).Wait();
 
-                const int width = 15_840;
-                const int height = 8_640;
+                //var fromBinaries = ctx.CreateProgram(program.Builds.AsBinariesDictionary());
+                //fromBinaries.BuildAsync(ctx.Devices).Wait();
 
-                var device = ctx.Devices.Single();
-                var queues = ctx.CreateCommandQueue(device, false, false);
+                var kernel = program.CreateKernel("SAXPY");
 
-                var imageBuffer = ctx.CreateBuffer<byte>().ByAllocation(width * height * 3).AsWriteOnly();
+                const long workSize = 100_000_000;
 
-                var mandelbrotKernel = program.CreateKernel("render");
-                mandelbrotKernel.SetMemoryArgument(0, imageBuffer);
+                var x = new float[workSize];
+                var rnd = new Random();
+                for (var i = 0; i < x.Length; i++)
+                {
+                    x[i] = (float)rnd.NextDouble() * 100;
+                }
 
-                var evt = mandelbrotKernel.Execute(queues, new GlobalWorkParameters(width), new GlobalWorkParameters(height));
-                evt.WaitComplete();
-                var image = imageBuffer.Read(queues);
+                var xBuffer = ctx.CreateBuffer<float>().ByAllocation((uint)workSize).AsReadWrite();
+                var yBuffer = ctx.CreateBuffer<float>().ByAllocation((uint)workSize).AsReadOnly();
 
-                queues.Finish();
+                var xSub = xBuffer.CreateSubBuffer().WithSize(4).AsReadOnly();
 
-                SaveBitmap("mandelbrot", width, height, image);
+                kernel.SetMemoryArgument(0, xBuffer);
+                kernel.SetMemoryArgument(1, yBuffer);
+                kernel.SetArgument(2, 300f);
+
+                var watch = new Stopwatch();
+                foreach (var device in platform.Devices)
+                {
+                    Console.WriteLine($"\t{device.Name}");
+                    watch.Reset();
+                    watch.Start();
+
+                    var cq = ctx.CreateCommandQueue(device, false, false);
+
+                    xBuffer.Write(cq, x);
+
+                    var executionEvent = kernel.Execute(cq, new GlobalWorkParameters((uint)x.Length));
+
+                    cq.Flush();
+
+                    executionEvent.WaitComplete();
+
+                    var readBuffer = yBuffer.ReadAsync(cq).WaitCompleteAsync().Result;
+                    cq.Finish();
+                    watch.Stop();
+                    Console.WriteLine($"Wrote, multiplied and read back {workSize} items in {watch.Elapsed.TotalMilliseconds}ms");
+                }
 
                 ctx.Dispose();
             }
 
             Console.WriteLine("--- Finished ---");
             Console.ReadLine();
-        }
-
-        public static unsafe void SaveBitmap(string fileName, int width, int height, ReadOnlySpan<byte> imageData)
-        {
-            fixed (void* ptr = imageData)
-            {
-                using (var image = new Bitmap(width, height, width * 3,
-                    PixelFormat.Format24bppRgb, (IntPtr)ptr))
-                {
-                    image.Save(Path.ChangeExtension(fileName, ".jpg"));
-                }
-            }
         }
 
         private static void CtxOnNotification(object sender, ContextNotificationEventArgs e)

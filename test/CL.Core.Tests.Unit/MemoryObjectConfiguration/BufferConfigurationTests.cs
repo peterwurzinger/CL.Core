@@ -1,10 +1,11 @@
-﻿using CL.Core.Model;
-using CL.Core.Tests.Unit.Model;
-using System;
+﻿using System;
 using CL.Core.API;
+using CL.Core.MemoryObjectConfiguration;
+using CL.Core.Model;
+using CL.Core.Tests.Unit.Model;
 using Xunit;
 
-namespace CL.Core.Tests.Unit
+namespace CL.Core.Tests.Unit.MemoryObjectConfiguration
 {
     public class BufferConfigurationTests : UnitTestBase
     {
