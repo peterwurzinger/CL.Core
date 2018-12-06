@@ -4,7 +4,7 @@
 
 int index(int x, int y, int width) {
 
-  return 3*width*y + x*3;
+  return width*y + x;
 
 }
 
@@ -92,19 +92,11 @@ __kernel void render(__global char *out) {
 
     out[idx] = 0;
 
-    out[idx + 1] = 0;
-
-    out[idx + 2] = 0;
-
   } else {
 
     // This coordinate did escape, so color based on quickly it escaped
 
-    out[idx] = 0;
-
     out[idx + 1] = iteration;
-
-    out[idx + 2] = 0;
 
   }
 
