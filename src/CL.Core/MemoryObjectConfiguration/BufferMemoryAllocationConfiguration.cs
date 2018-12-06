@@ -8,9 +8,9 @@ namespace CL.Core.MemoryObjectConfiguration
     public class BufferMemoryAllocationConfiguration<T> : BufferMemoryBehaviorConfiguration<T>
         where T : unmanaged
     {
-        private readonly uint _numElements;
+        private readonly ulong _numElements;
 
-        internal BufferMemoryAllocationConfiguration(IOpenClApi api, Context context, Action<Buffer<T>> memoryObjectCreatedCallback, MemoryFlags flags, uint numElements)
+        internal BufferMemoryAllocationConfiguration(IOpenClApi api, Context context, Action<Buffer<T>> memoryObjectCreatedCallback, MemoryFlags flags, ulong numElements)
             : base(api, context, memoryObjectCreatedCallback, flags)
         {
             _numElements = numElements;

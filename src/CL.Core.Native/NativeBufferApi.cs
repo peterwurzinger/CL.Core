@@ -7,7 +7,7 @@ namespace CL.Core.Native
     internal class NativeBufferApi : IBufferApi
     {
         [DllImport(Constants.DLL, EntryPoint = "clCreateBuffer")]
-        public static extern IntPtr clCreateBuffer(IntPtr context, MemoryFlags flags, uint size, IntPtr hostPtr,
+        public static extern IntPtr clCreateBuffer(IntPtr context, MemoryFlags flags, ulong size, IntPtr hostPtr,
             out OpenClErrorCode errorCode);
 
         [DllImport(Constants.DLL, EntryPoint = "clCreateSubBuffer")]
@@ -51,7 +51,7 @@ namespace CL.Core.Native
             return clEnqueueWriteBuffer(commandQueue, buffer, blockingWrite, offset, cb, mem, numEventsInWaitList, eventWaitList, out evt);
         }
 
-        IntPtr IBufferApi.clCreateBuffer(IntPtr context, MemoryFlags flags, uint size, IntPtr hostPtr, out OpenClErrorCode errorCode)
+        IntPtr IBufferApi.clCreateBuffer(IntPtr context, MemoryFlags flags, ulong size, IntPtr hostPtr, out OpenClErrorCode errorCode)
         {
             return clCreateBuffer(context, flags, size, hostPtr, out errorCode);
         }

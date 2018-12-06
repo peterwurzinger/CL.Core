@@ -2,6 +2,7 @@
 
 namespace CL.Core.API
 {
+    //TODO: Make size_t - params ulong?
     public interface IBufferApi
     {
         /// <summary>
@@ -14,8 +15,7 @@ namespace CL.Core.API
         /// <param name="errorCode">Returns an appropriate error code. If errorCode is NULL, no error code is returned. </param>
         /// <returns></returns>
 
-        //TODO: Make size_t - params ulong?
-        IntPtr clCreateBuffer(IntPtr context, MemoryFlags flags, uint size, IntPtr hostPtr, out OpenClErrorCode errorCode);
+        IntPtr clCreateBuffer(IntPtr context, MemoryFlags flags, ulong size, IntPtr hostPtr, out OpenClErrorCode errorCode);
 
         /// <summary>
         /// Creates a buffer object (referred to as a sub-buffer object) from an existing buffer object. 

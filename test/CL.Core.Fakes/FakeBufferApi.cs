@@ -17,7 +17,7 @@ namespace CL.Core.Fakes
 
         public IntPtr? clCreateBufferResult { get; set; }
         public OpenClErrorCode? clCreateBufferErrorCode { get; set; }
-        public IntPtr clCreateBuffer(IntPtr context, MemoryFlags flags, uint size, IntPtr hostPtr, out OpenClErrorCode errorCode)
+        public IntPtr clCreateBuffer(IntPtr context, MemoryFlags flags, ulong size, IntPtr hostPtr, out OpenClErrorCode errorCode)
         {
             errorCode = clCreateBufferErrorCode ?? OpenClErrorCode.Success;
             var id = clCreateBufferResult ?? IntPtr.Zero;

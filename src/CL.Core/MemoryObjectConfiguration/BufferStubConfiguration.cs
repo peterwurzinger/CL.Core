@@ -12,7 +12,7 @@ namespace CL.Core.MemoryObjectConfiguration
         {
         }
 
-        public BufferMemoryBehaviorConfiguration<T> ByAllocation(uint numElements)
+        public BufferMemoryBehaviorConfiguration<T> ByAllocation(ulong numElements)
         {
             return new BufferMemoryAllocationConfiguration<T>(Api, Context, MemoryObjectCreatedCallback, MemoryFlags.AllocHostPointer, numElements);
         }
