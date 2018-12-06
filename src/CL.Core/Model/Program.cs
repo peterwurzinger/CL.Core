@@ -74,7 +74,7 @@ namespace CL.Core.Model
             BuildAsync(devices).GetAwaiter().GetResult();
         }
 
-        public Task BuildAsync(IReadOnlyCollection<Device> devices, params string[] options)
+        public async Task BuildAsync(IReadOnlyCollection<Device> devices, params string[] options)
         {
             if (_disposed)
                 throw new ObjectDisposedException(GetType().FullName);
@@ -85,7 +85,8 @@ namespace CL.Core.Model
             _builds = null;
             var build = new AsyncBuild(_api.ProgramApi, this, devices, options ?? Array.Empty<string>());
 
-            return build.WaitAsync().ContinueWith(t => { _builds = t.Result; }, TaskScheduler.Current);
+            var result = await build.WaitAsync().ConfigureAwait(false);
+            _builds = result;
         }
 
         public Kernel CreateKernel(string name)

@@ -37,9 +37,7 @@ namespace CL.Core.Model
 
             var optionsString = string.Join(" ", options);
 
-            var error = programApi.clBuildProgram(program.Id, (uint)devices.Count, devices.Select(d => d.Id).ToArray(), optionsString, fp, IntPtr.Zero);
-            if (error != OpenClErrorCode.Success)
-                _taskCompletionSource.SetException(new ClCoreException(error));
+            programApi.clBuildProgram(program.Id, (uint)devices.Count, devices.Select(d => d.Id).ToArray(), optionsString, fp, IntPtr.Zero);
         }
 
         public Task<Dictionary<Device, BuildInfo>> WaitAsync()
