@@ -26,12 +26,12 @@ namespace CL.Core.Samples.Console
                 var ctx = platform.CreateContext(platform.Devices);
                 ctx.Notification += CtxOnNotification;
 
-                const int width = 31_760;
-                const int height = 16_320;
+                const int width = 31_760/2;
+                const int height = 16_320/2;
 
                 var device = ctx.Devices.Single();
 
-                var image = await MandelbrotCalculator.Calculate(ctx, device, width, height);
+                var image = await MandelbrotCalculator.CalculateAsync(ctx, device, width, height);
 
                 SaveBitmap("mandelbrot", width, height, image);
 
