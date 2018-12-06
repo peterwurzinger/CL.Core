@@ -12,15 +12,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\CL.Core\CL.Core.csproj" />
     <ProjectReference Include="..\..\src\CL.Core.Native\CL.Core.Native.csproj" />
+    <ProjectReference Include="..\CL.Core.Samples\CL.Core.Samples.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="ExampleProgram.cl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Mandelbrot.cl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
