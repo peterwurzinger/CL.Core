@@ -6,40 +6,41 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace CL.Core.Samples.Console
 {
     public static class Program
     {
-        public static async Task Main(string[] args)
+        public static void Main(string[] args)
         {
+            if (args.Length != 1)
+                throw new ArgumentException($"Illegal number of arguments. Expected: 1, Got {args.Length}");
+
+            var sizeFactor = uint.Parse(args[0]);
+            var width = 1_980 * sizeFactor;
+            var height = 1_020 * sizeFactor;
+
             var api = new NativeOpenClApi();
 
             var factory = new PlatformFactory(api);
-            var platforms = factory.GetPlatforms();
+            var platforms = factory.GetPlatforms().ToArray();
+            var platform = platforms[0];
 
-            foreach (var platform in platforms.Where(p => p.Devices.Count == 1))
-            {
-                System.Console.WriteLine($"{platform.Id} - {platform.Vendor}");
+            System.Console.WriteLine($"{platform.Id} - {platform.Vendor}");
 
-                var ctx = platform.CreateContext(platform.Devices);
-                ctx.Notification += CtxOnNotification;
+            var ctx = platform.CreateContext(platform.Devices);
+            ctx.Notification += CtxOnNotification;
 
-                const int width = 31_760/2;
-                const int height = 16_320/2;
+            var device = ctx.Devices.First();
 
-                var device = ctx.Devices.Single();
+            //var image = await MandelbrotCalculator.CalculateAsync(ctx, device, width, height);
+            var image = MandelbrotCalculator.Calculate(ctx, device, width, height);
 
-                var image = await MandelbrotCalculator.CalculateAsync(ctx, device, width, height);
+            //SaveBitmap("mandelbrot", (int)width, (int)height, image);
 
-                SaveBitmap("mandelbrot", width, height, image);
-
-                ctx.Dispose();
-            }
+            ctx.Dispose();
 
             System.Console.WriteLine("--- Finished ---");
-            System.Console.ReadLine();
         }
 
         public static unsafe void SaveBitmap(string fileName, int width, int height, ReadOnlyMemory<byte> imageData)
