@@ -1,52 +1,62 @@
-﻿using System;
-using System.Text;
-using CL.Core.API;
+﻿using CL.Core.API;
 using CL.Core.Model;
+using System;
+using System.Text;
 
 namespace CL.Core
 {
     internal sealed class InfoHelper<TParameter>
         where TParameter : Enum
     {
-        internal delegate OpenClErrorCode GetInfoFunc(IntPtr handle, TParameter parameterName, uint valueSize,
+        internal delegate OpenClErrorCode GetEntityInfo(IntPtr handle, TParameter parameterName, uint valueSize,
             IntPtr paramValue, out uint parameterValueSizeReturn);
 
-        private readonly IHasId _entity;
-        private readonly GetInfoFunc _infoFunc;
+        private delegate OpenClErrorCode GetParamSizeFunc(TParameter parameterName, out uint parameterValueSizeReturn);
+        private unsafe delegate OpenClErrorCode GetInfoFunc(TParameter parameterName, uint paramSize, void* mem);
+
+        private readonly GetInfoFunc _entityInfoFunc;
+        private readonly GetParamSizeFunc _paramSizeFunc;
         private readonly Encoding _encoding;
 
-        internal InfoHelper(IHasId entity, GetInfoFunc infoFunc, Encoding encoding)
+        internal unsafe InfoHelper(IHasId entity, GetEntityInfo entityInfo, Encoding encoding)
         {
-            _entity = entity ?? throw new ArgumentNullException(nameof(entity));
-            _infoFunc = infoFunc ?? throw new ArgumentNullException(nameof(infoFunc));
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
+            if (entityInfo == null) throw new ArgumentNullException(nameof(entityInfo));
             _encoding = encoding ?? throw new ArgumentNullException(nameof(encoding));
+
+            _entityInfoFunc = (parameterName, paramSize, mem) =>
+                entityInfo(entity.Id, parameterName, paramSize, (IntPtr) mem, out _);
+
+            _paramSizeFunc = (TParameter name, out uint parameterValueSizeReturn) => 
+                entityInfo(entity.Id, name, 0, IntPtr.Zero, out parameterValueSizeReturn);
         }
 
-        internal InfoHelper(IHasId entity, GetInfoFunc infoFunc)
-            : this(entity, infoFunc, Encoding.UTF8) { }
+        internal InfoHelper(IHasId entity, GetEntityInfo entityInfo)
+            : this(entity, entityInfo, Encoding.UTF8) { }
 
         public unsafe TValue GetValue<TValue>(TParameter parameterName)
             where TValue : unmanaged
         {
-            _infoFunc(_entity.Id, parameterName, 0, IntPtr.Zero, out var paramSize).ThrowOnError();
+            _paramSizeFunc(parameterName, out var paramSize).ThrowOnError();
 
-            var stackMemory = stackalloc TValue[1];
-            _infoFunc(_entity.Id, parameterName, paramSize, (IntPtr)stackMemory, out _).ThrowOnError();
+            var value = default(TValue);
 
-            return stackMemory[0];
+            _entityInfoFunc(parameterName, paramSize, &value).ThrowOnError();
+
+            return value;
         }
 
         public unsafe ReadOnlySpan<TValue> GetValues<TValue>(TParameter parameterName)
             where TValue : unmanaged
         {
-            _infoFunc(_entity.Id, parameterName, 0, IntPtr.Zero, out var paramSize).ThrowOnError();
+            _paramSizeFunc(parameterName, out var paramSize).ThrowOnError();
 
             //Explicitly allocating an array. Stackalloc doesn't make sense, since it would get allocated on heap eventually on return
             var memory = new TValue[(int)paramSize / sizeof(TValue)];
 
             fixed (void* ptr = memory)
             {
-                _infoFunc(_entity.Id, parameterName, paramSize, (IntPtr)ptr, out _).ThrowOnError();
+                _entityInfoFunc(parameterName, paramSize, ptr).ThrowOnError();
             }
 
             return memory;
@@ -54,10 +64,10 @@ namespace CL.Core
 
         public unsafe string GetStringValue(TParameter parameterName)
         {
-            _infoFunc(_entity.Id, parameterName, 0, IntPtr.Zero, out var paramSize).ThrowOnError();
+            _paramSizeFunc(parameterName, out var paramSize).ThrowOnError();
 
             var stackMemory = stackalloc byte[(int)paramSize];
-            _infoFunc(_entity.Id, parameterName, paramSize, (IntPtr) stackMemory, out _).ThrowOnError();
+            _entityInfoFunc(parameterName, paramSize, stackMemory).ThrowOnError();
 
             return _encoding.GetString(stackMemory, (int)paramSize)?.TrimEnd((char)0);
         }
