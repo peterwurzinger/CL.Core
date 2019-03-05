@@ -10,20 +10,26 @@ namespace CL.Core.Samples.Benchmark
     [RyuJitX64Job]
     public class MandelbrotBenchmark
     {
-        private const int Width = 15_840;
-        private const int Height = 8_160;
+        [Params(1,2,4,8)]
+        public uint SizeFactor { get; set; }
+
+        private const uint Width = 1_980;
+        private const uint Height = 1_020;
+
+        private uint ActualWidth => Width * SizeFactor;
+        private uint ActualHeight => Height * SizeFactor;
 
         [Benchmark]
         public ReadOnlyMemory<byte> Compute()
         {
             var api = new NativeOpenClApi();
             var factory = new PlatformFactory(api);
-            var platform = factory.GetPlatforms().First();
+            var platform = factory.GetPlatforms().First(f => f.Devices.Count == 1);
             var ctx = platform.CreateContext(platform.Devices);
             var device = ctx.Devices.Single();
 
             //Using synchronous calculation, since the MemoryDiagnoser is only able to fetch memory allocations by one thread
-            var result = MandelbrotCalculator.Calculate(ctx, device, Width, Height);
+            var result = MandelbrotCalculator.Calculate(ctx, device, ActualWidth, ActualHeight);
 
             ctx.Dispose();
             return result;
