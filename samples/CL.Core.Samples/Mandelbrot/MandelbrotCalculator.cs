@@ -15,18 +15,18 @@ namespace CL.Core.Samples.Mandelbrot
             var program = ctx.CreateProgram(sources);
             await program.BuildAsync(ctx.Devices);
             var queue = ctx.CreateCommandQueue(device, false, false);
-
+            
             var imageBuffer = ctx.CreateBuffer<byte>().ByAllocation(width * height).AsWriteOnly();
 
             var mandelbrotKernel = program.CreateKernel("render");
             mandelbrotKernel.SetMemoryArgument(0, imageBuffer);
 
             var executionEvent = mandelbrotKernel.Execute(queue, new GlobalWorkParameters(width), new GlobalWorkParameters(height));
-            await executionEvent.WaitCompleteAsync();
 
             var readEvent = imageBuffer.ReadAsync(queue);
             queue.Finish();
-            
+            await executionEvent.WaitCompleteAsync();
+
             return await readEvent.WaitCompleteAsync();
         }
 
@@ -44,10 +44,11 @@ namespace CL.Core.Samples.Mandelbrot
             mandelbrotKernel.SetMemoryArgument(0, imageBuffer);
 
             var executionEvent = mandelbrotKernel.Execute(queue, new GlobalWorkParameters(width), new GlobalWorkParameters(height));
-            executionEvent.WaitComplete();
 
             var readEvent = imageBuffer.ReadAsync(queue);
             queue.Finish();
+
+            executionEvent.WaitComplete();
 
             return readEvent.WaitComplete();
         }
