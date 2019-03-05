@@ -9,11 +9,14 @@ namespace CL.Core.Model
         where T : unmanaged
     {
         private bool _disposed;
+        public ulong Length { get; }
 
         internal BufferBase(IOpenClApi api, Context context, IntPtr id, MemoryHandle? hostMemory = null)
             : base(api, context, id, hostMemory)
         {
+            Length = Size / (uint)Marshal.SizeOf<T>();
         }
+
         internal BufferBase(IOpenClApi api, Context context, IntPtr id)
             : this(api, context, id, null)
         {
@@ -27,7 +30,7 @@ namespace CL.Core.Model
             if (commandQueue == null)
                 throw new ArgumentNullException(nameof(commandQueue));
 
-            var memory = new T[Size];
+            var memory = new T[Length];
             var hdl = GCHandle.Alloc(memory, GCHandleType.Pinned);
             var error = Api.BufferApi.clEnqueueReadBuffer(commandQueue.Id, Id, true, 0, (uint)Size, hdl.AddrOfPinnedObject(), 0,
                 null, out _);
@@ -60,7 +63,7 @@ namespace CL.Core.Model
             if (commandQueue == null)
                 throw new ArgumentNullException(nameof(commandQueue));
 
-            var memory = new T[Size];
+            var memory = new T[Length];
             var hdl = GCHandle.Alloc(memory, GCHandleType.Pinned);
             var error = Api.BufferApi.clEnqueueReadBuffer(commandQueue.Id, Id, true, 0, (uint)Size, hdl.AddrOfPinnedObject(), 0,
                 null, out var evt);
