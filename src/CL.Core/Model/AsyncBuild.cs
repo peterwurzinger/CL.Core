@@ -75,11 +75,11 @@ namespace CL.Core.Model
 
         private unsafe Dictionary<IntPtr, ReadOnlyMemory<byte>> GetBinaries()
         {
-            var sortedDevices = _programInfoHelper.GetValues<IntPtr>(ProgramInfoParameter.Devices).ToArray();
+            var sortedDevices = _programInfoHelper.GetValues<IntPtr>(ProgramInfoParameter.Devices);
             if (!sortedDevices.Any())
                 return new Dictionary<IntPtr, ReadOnlyMemory<byte>>();
 
-            var binarySizes = _programInfoHelper.GetValues<ulong>(ProgramInfoParameter.BinarySizes).ToArray();
+            var binarySizes = _programInfoHelper.GetValues<ulong>(ProgramInfoParameter.BinarySizes);
 
             var memorySegments = binarySizes.Select(size => new ReadOnlyMemory<byte>(new byte[size])).ToArray();
             var handles = memorySegments.Select(mem => mem.Pin()).ToArray();

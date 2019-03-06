@@ -152,7 +152,7 @@ namespace CL.Core.Model
             MaxWorkItemDimensions = _deviceInfoHelper.GetValue<uint>(DeviceInfoParameter.MaxWorkItemDimensions);
             MaxWorkGroupSize = _deviceInfoHelper.GetValue<uint>(DeviceInfoParameter.MaxWorkGroupSize);
 
-            MaxWorkItemSizes = _deviceInfoHelper.GetValues<ulong>(DeviceInfoParameter.MaxWorkItemSizes).ToArray();
+            MaxWorkItemSizes = _deviceInfoHelper.GetValues<ulong>(DeviceInfoParameter.MaxWorkItemSizes);
 
             //TODO: Get bit width of size_t from AddressBits - property
             //From enqueueNDRangeKernel: The sizeof(size_t) for a device can be determined using CL_DEVICE_ADDRESS_BITS

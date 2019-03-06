@@ -46,7 +46,7 @@ namespace CL.Core
             return value;
         }
 
-        public unsafe ReadOnlySpan<TValue> GetValues<TValue>(TParameter parameterName)
+        public unsafe TValue[] GetValues<TValue>(TParameter parameterName)
             where TValue : unmanaged
         {
             _paramSizeFunc(parameterName, out var paramSize).ThrowOnError();

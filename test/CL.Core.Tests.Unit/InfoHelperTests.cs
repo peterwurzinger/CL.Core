@@ -82,7 +82,7 @@ namespace CL.Core.Tests.Unit
         {
             var result = _target.GetValues<int>(FakeEntityInformationParameter.FancyNumbers);
 
-            Assert.Equal(_fakeEntityApi.Entity.FancyNumbers, result.ToArray());
+            Assert.Equal(_fakeEntityApi.Entity.FancyNumbers, result);
         }
 
         [Fact]
