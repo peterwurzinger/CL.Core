@@ -22,11 +22,12 @@ namespace CL.Core.Samples.Mandelbrot
             mandelbrotKernel.SetMemoryArgument(0, imageBuffer);
 
             var executionEvent = mandelbrotKernel.Execute(queue, new GlobalWorkParameters(width), new GlobalWorkParameters(height));
-
-            var readTask = imageBuffer.ReadAsync(queue);
-            queue.Finish();
+            queue.Flush();
             await executionEvent.WaitCompleteAsync();
 
+            var readTask = imageBuffer.ReadAsync(queue);
+            queue.Flush();
+            
             return await readTask;
         }
 

@@ -110,13 +110,15 @@ namespace CL.Core.Model
             if (_disposed)
                 return;
 
-            ReleaseUnmanagedResources();
             if (disposing)
             {
                 _builds.Clear();
                 foreach (var kernel in _attachedKernels)
                     kernel.Dispose();
             }
+
+            ReleaseUnmanagedResources();
+            
             _disposed = true;
         }
 

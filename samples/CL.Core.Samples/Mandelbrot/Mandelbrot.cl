@@ -14,8 +14,8 @@ kernel void render(__global __write_only char *outputImage)
     char result = 0;
     float MinRe = -2.0f;
     float MaxRe = 1.0f;
-    float MinIm = -1.5f;
-    float MaxIm = MinIm+(MaxRe-MinRe)*h/w;
+    float MinIm = -1;
+    float MaxIm = 1;
     float Re_factor = (MaxRe-MinRe)/(w-1);
     float Im_factor = (MaxIm-MinIm)/(h-1);
     float MaxIterations = 256;
