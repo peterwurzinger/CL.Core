@@ -1,7 +1,9 @@
 ﻿using CL.Core.API;
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace CL.Core.Model
 {
@@ -22,7 +24,7 @@ namespace CL.Core.Model
         {
         }
 
-        public ReadOnlySpan<T> Read(CommandQueue commandQueue)
+        public IReadOnlyCollection<T> Read(CommandQueue commandQueue)
         {
             if (_disposed)
                 throw new ObjectDisposedException(GetType().FullName);
@@ -31,17 +33,25 @@ namespace CL.Core.Model
                 throw new ArgumentNullException(nameof(commandQueue));
 
             var memory = new T[Length];
+
             var hdl = GCHandle.Alloc(memory, GCHandleType.Pinned);
-            var error = Api.BufferApi.clEnqueueReadBuffer(commandQueue.Id, Id, true, 0, (uint)Size, hdl.AddrOfPinnedObject(), 0,
-                null, out _);
+            try
+            {
+                var error = Api.BufferApi.clEnqueueReadBuffer(commandQueue.Id, Id, true, 0, (uint)Size,
+                    hdl.AddrOfPinnedObject(), 0,
+                    null, out _);
 
-            hdl.Free();
-            error.ThrowOnError();
+                error.ThrowOnError();
 
-            return memory;
+                return memory;
+            }
+            finally
+            {
+                hdl.Free();
+            }
         }
 
-        public unsafe void Write(CommandQueue commandQueue, ReadOnlyMemory<T> data)
+        public unsafe void Write(CommandQueue commandQueue, ReadOnlySpan<T> data)
         {
             if (_disposed)
                 throw new ObjectDisposedException(GetType().FullName);
@@ -49,13 +59,15 @@ namespace CL.Core.Model
             if (commandQueue == null)
                 throw new ArgumentNullException(nameof(commandQueue));
 
-            var handle = data.Pin();
-            var error = Api.BufferApi.clEnqueueWriteBuffer(commandQueue.Id, Id, true, 0, (uint)Size, new IntPtr(handle.Pointer), 0, null, out _);
-            handle.Dispose();
-            error.ThrowOnError();
+            fixed (void* ptr = data)
+            {
+                var error = Api.BufferApi.clEnqueueWriteBuffer(commandQueue.Id, Id, true, 0, (uint)Size,
+                    (IntPtr)ptr, 0, null, out _);
+                error.ThrowOnError();
+            }
         }
 
-        public Event<ReadOnlyMemory<T>> ReadAsync(CommandQueue commandQueue)
+        public async Task<IReadOnlyCollection<T>> ReadAsync(CommandQueue commandQueue)
         {
             if (_disposed)
                 throw new ObjectDisposedException(GetType().FullName);
@@ -68,13 +80,22 @@ namespace CL.Core.Model
             var error = Api.BufferApi.clEnqueueReadBuffer(commandQueue.Id, Id, true, 0, (uint)Size, hdl.AddrOfPinnedObject(), 0,
                 null, out var evt);
 
-            hdl.Free();
-            error.ThrowOnError();
+            try
+            {
+                error.ThrowOnError();
 
-            return new Event<ReadOnlyMemory<T>>(Api, evt, memory);
+                var eventObject = new Event(Api, evt);
+                await eventObject.WaitCompleteAsync().ConfigureAwait(false);
+
+                return memory;
+            }
+            finally
+            {
+                hdl.Free();
+            }
         }
 
-        public unsafe Event WriteAsync(CommandQueue commandQueue, ReadOnlyMemory<T> data)
+        public async Task WriteAsync(CommandQueue commandQueue, ReadOnlyMemory<T> data)
         {
             if (_disposed)
                 throw new ObjectDisposedException(GetType().FullName);
@@ -83,11 +104,27 @@ namespace CL.Core.Model
                 throw new ArgumentNullException(nameof(commandQueue));
 
             var handle = data.Pin();
-            var error = Api.BufferApi.clEnqueueWriteBuffer(commandQueue.Id, Id, false, 0, (uint)Size, new IntPtr(handle.Pointer), 0, null, out var evt);
-            handle.Dispose();
-            error.ThrowOnError();
 
-            return new Event(Api, evt);
+            OpenClErrorCode error;
+            IntPtr evt;
+
+            unsafe
+            {
+                error = Api.BufferApi.clEnqueueWriteBuffer(commandQueue.Id, Id, false, 0, (uint)Size,
+                    new IntPtr(handle.Pointer), 0, null, out evt);
+            }
+
+            try
+            {
+                error.ThrowOnError();
+
+                var eventObj = new Event(Api, evt);
+                await eventObj.WaitCompleteAsync().ConfigureAwait(false);
+            }
+            finally
+            {
+                handle.Dispose();
+            }
         }
 
         protected override void Dispose(bool disposing)

@@ -48,7 +48,7 @@ namespace CL.Core.Tests.Unit.Model
         {
             var result = _target.Read(_commandQueue);
 
-            Assert.Equal(_target.Size, (ulong)result.Length);
+            Assert.Equal(_target.Size, (ulong)result.Count);
         }
 
     }

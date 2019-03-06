@@ -6,12 +6,13 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace CL.Core.Samples.Console
 {
     public static class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             if (args.Length != 1)
                 throw new ArgumentException($"Illegal number of arguments. Expected: 1, Got {args.Length}");
@@ -33,10 +34,10 @@ namespace CL.Core.Samples.Console
 
             var device = ctx.Devices.First();
 
-            //var image = await MandelbrotCalculator.CalculateAsync(ctx, device, width, height);
-            var image = MandelbrotCalculator.Calculate(ctx, device, width, height);
+            //var image = MandelbrotCalculator.Calculate(ctx, device, width, height);
+            var image = await MandelbrotCalculator.CalculateAsync(ctx, device, width, height);
 
-            //SaveBitmap("mandelbrot", (int)width, (int)height, image);
+            SaveBitmap("mandelbrot", (int)width, (int)height, image.ToArray());
 
             ctx.Dispose();
 

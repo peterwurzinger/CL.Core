@@ -1,7 +1,7 @@
 ﻿using BenchmarkDotNet.Attributes;
 using CL.Core.Native;
 using CL.Core.Samples.Mandelbrot;
-using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace CL.Core.Samples.Benchmark
@@ -10,7 +10,7 @@ namespace CL.Core.Samples.Benchmark
     [RyuJitX64Job]
     public class MandelbrotBenchmark
     {
-        [Params(1,2,4,8)]
+        [Params(1, 2, 4, 8)]
         public uint SizeFactor { get; set; }
 
         private const uint Width = 1_980;
@@ -20,7 +20,7 @@ namespace CL.Core.Samples.Benchmark
         private uint ActualHeight => Height * SizeFactor;
 
         [Benchmark]
-        public ReadOnlyMemory<byte> Compute()
+        public IReadOnlyCollection<byte> Compute()
         {
             var api = new NativeOpenClApi();
             var factory = new PlatformFactory(api);
