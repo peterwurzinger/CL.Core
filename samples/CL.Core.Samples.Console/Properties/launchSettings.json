@@ -2,7 +2,7 @@
   "profiles": {
     "CL.Core.Samples.Console": {
       "commandName": "Project",
-      "commandLineArgs": "8"
+      "commandLineArgs": "24"
     }
   }
 }

@@ -1,78 +1,43 @@
-﻿// voronoi kernels
-
-//
-// local memory version
-//
-kernel void render(__global __write_only char *outputImage)
+﻿kernel void render(__global __write_only char *img)
 {
-    // get id of element in array
+    //local x-coordinate
     int x = get_global_id(0);
+    //local y-coordinate
     int y = get_global_id(1);
-    int w = get_global_size(0);
-    int h = get_global_size(1);
+    
+    int width = get_global_size(0);
+    int height = get_global_size(1);
 
-    char result = 0;
-    float MinRe = -2.0f;
-    float MaxRe = 1.0f;
-    float MinIm = -1;
-    float MaxIm = 1;
-    float Re_factor = (MaxRe-MinRe)/(w-1);
-    float Im_factor = (MaxIm-MinIm)/(h-1);
-    float MaxIterations = 256;
-
-
-    //C imaginary
-    float c_im = MaxIm - y*Im_factor;
-
-    //C real
-    float c_re = MinRe + x*Re_factor;
-
-    //Z real
-    float Z_re = c_re, Z_im = c_im;
-
-    bool isInside = true;
-    bool col2 = false;
-    bool col3 = false;
-    int iteration =0;
-
-    for(int n=0; n<MaxIterations; n++)
+    int index = y * width + x;
+    
+    const float minX = -2.0f;
+    const float maxX = 1.0f;
+    const float minY = -1.0f;
+    const float maxY = 1.0f;
+    const int maxIterations = 256;
+    
+    //-- Calculation --
+    
+    float cX = minX + ((float)x / width) * (maxX - minX);
+    float cY = minY + ((float)y / height) * (maxY - minY);
+        
+    float zX = cX;
+    float zY = cY;
+    
+    for (int i = 0; i < maxIterations; i++)
     {
-        // Z - real and imaginary
-        float Z_re2 = Z_re*Z_re, Z_im2 = Z_im*Z_im;
+        float localX = (zX * zX - zY * zY) + cX;
+        float localY = (zY * zX + zX * zY) + cY;
 
-        //if Z real squared plus Z imaginary squared is greater than c squared
-        if(Z_re2 + Z_im2 > 4)
+        if ((localX * localX + localY * localY) > 4)
         {
-            if(n >= 0 && n <= (MaxIterations/2-1))
-            {
-                col2 = true;
-                isInside = false;
-                break;
-            }
-            else if(n >= MaxIterations/2 && n <= MaxIterations-1)
-            {
-                col3 = true;
-                isInside = false;
-                break;
-            }
+            img[index] = i;
+            return;
         }
-        Z_im = 2*Z_re*Z_im + c_im;
-        Z_re = Z_re2 - Z_im2 + c_re;
-        iteration++;
-    }
-    if(col2) 
-    { 
-        result = iteration;
-    }
-    else if(col3)
-    {
-        result = 255;
-    }
-    else if(isInside)
-    {
-        result = 0;
-    }
 
-	int index = y * w + x;
-	outputImage[index] = result;
+        zX = localX;
+        zY = localY;
+    }
+    
+    img[index] = 0;
 }
