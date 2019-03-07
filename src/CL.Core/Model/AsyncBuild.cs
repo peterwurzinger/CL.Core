@@ -79,6 +79,8 @@ namespace CL.Core.Model
             if (!sortedDevices.Any())
                 return new Dictionary<IntPtr, ReadOnlyMemory<byte>>();
 
+            //This will throw and OutOfHostMemory-Exception when build was not successfull!
+            //TODO
             var binarySizes = _programInfoHelper.GetValues<ulong>(ProgramInfoParameter.BinarySizes);
 
             var memorySegments = binarySizes.Select(size => new ReadOnlyMemory<byte>(new byte[size])).ToArray();
